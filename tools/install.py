@@ -26,15 +26,18 @@ def install(sdk, check=False):
     if revision != REVISION:
         raise RuntimeError(f'Use the supported SDK revision {REVISION}; found {revision}.')
     patch = str(ROOT / 'patches/muse-character-menu.patch')
-    old_patch = str(ROOT / 'patches/v1-character-menu.patch')
     def applicable(reverse=False, path=patch):
         args = git + ['apply', '--check'] + (['--reverse'] if reverse else []) + [path]
         return subprocess.run(args, capture_output=True).returncode == 0
     applied = applicable(reverse=True)
-    legacy = not applied and applicable(reverse=True, path=old_patch)
+    old_patch = next((str(ROOT/'patches'/name) for name in
+                      ['v2-character-menu.patch', 'v1-character-menu.patch']
+                      if not applied and applicable(reverse=True, path=str(ROOT/'patches'/name))), None)
+    legacy = old_patch is not None
     if not applied and not legacy and not applicable():
         raise RuntimeError('The SDK menu/build files conflict with the patch; no files were changed.')
-    integration = ['esp32/components/muse/CMakeLists.txt', 'esp32/components/muse/muse_menu.c']
+    integration = ['esp32/components/muse/CMakeLists.txt', 'esp32/components/muse/muse_menu.c',
+                   'esp32/components/muse/muse_settings_ui.c']
     if legacy:
         # Validate the complete migration in isolation before touching the SDK.
         with tempfile.TemporaryDirectory(prefix='celery-man-upgrade-') as tmp:
@@ -76,7 +79,7 @@ def install(sdk, check=False):
             else: target.write_bytes(data)
         raise
     print(f'Installed Tayne, Celery Man, Oyster and the default-pet integration into {avatar}')
-    print('Next: configure and build the StickS3 firmware using the README.')
+    print('Next: choose your board and follow INSTALL.md to configure and build.')
 
 
 if __name__ == '__main__':

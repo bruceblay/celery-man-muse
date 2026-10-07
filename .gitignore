@@ -15,3 +15,5 @@ sdkconfig*
 *.key
 avatar/*/preview-data.json
 avatar/tayne/asset-info.json
+
+.build-checks/

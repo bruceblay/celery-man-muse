@@ -9,7 +9,9 @@
 static uint16_t full[512*512], strip[512*16+2];
 int main(void)
 {
-    const int sizes[] = {1, 64, 128, 135, 320, 512};
+    /* Native avatar sizes: AIPI 96, sticks 128, Watcher 256, Waveshare 320.
+     * Panel sizes and odd widths also exercise non-integer scaling. */
+    const int sizes[] = {1, 64, 96, 128, 135, 192, 240, 256, 320, 368, 412, 448, 466, 512};
     assert(muse_character_count() == 4);
     assert(!muse_character_select(-1));
     assert(!muse_character_select(4));
@@ -64,6 +66,6 @@ int main(void)
         muse_default_scale(strip, 64, 0, 63, 0, 15);
         assert(memcmp(full, strip, 64*16*2)==0);
     }
-    puts("Four distinct avatars, default-renderer equivalence, switching, seven modes and six strip sizes verified.");
+    puts("Four avatars, default-renderer equivalence, switching, seven modes and fourteen strip sizes verified.");
     return 0;
 }

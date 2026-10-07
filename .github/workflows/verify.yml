@@ -19,3 +19,7 @@ jobs:
           git -C /tmp/muse-gadget-sdk diff --check
       - name: Check renderer with sanitizers
         run: python3 tools/verify.py --sdk /tmp/muse-gadget-sdk
+      - name: Check board profiles and installer upgrades
+        env:
+          MUSE_TEST_SDK: /tmp/muse-gadget-sdk
+        run: python3 -m unittest discover -s tests

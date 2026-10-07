@@ -29,7 +29,7 @@
   * limitations under the License.
   */
  
-+/* Modified by Celery Man for Muse: character selection and default-pet shortcut. */
++/* Modified by Celery Man for Muse: character picker and default-pet shortcut. */
 +
  #include "muse_menu.h"
  
@@ -173,108 +173,3 @@
      case VIEW_CLOSED:
          if (key == MUSE_MENU_DOWN) {
              open_menu();
---- a/esp32/components/muse/muse_settings_ui.c
-+++ b/esp32/components/muse/muse_settings_ui.c
-@@ -14,6 +14,8 @@
-  * limitations under the License.
-  */
- 
-+/* Modified by Celery Man for Muse: character selection and default-pet shortcut. */
-+
- #include "muse_settings_ui.h"
- 
- #include <stdio.h>
-@@ -38,6 +40,9 @@
- #include "muse_ui.h"
- #include "muse_voice.h"
- #include "muse_wifi.h"
-+#ifdef MUSE_CUSTOM_CHARACTERS
-+#include "avatar/characters.h"
-+#endif
- 
- /* Keep content in a column that stays inside a round panel (and fits a 368 px one). */
- #define LIST_W 330
-@@ -74,6 +79,10 @@
- 
- /* Home values. */
- static lv_obj_t *s_home_wifi, *s_home_hatch, *s_home_ble, *s_home_sound, *s_home_sleep, *s_home_battery, *s_about;
-+#ifdef MUSE_CUSTOM_CHARACTERS
-+static lv_obj_t *s_characters, *s_home_character, *s_character_error;
-+static bool s_character_save_failed;
-+#endif
- 
- /* Wi-Fi page. */
- static lv_obj_t *s_wifi_sw, *s_wifi_status, *s_wifi_saved, *s_wifi_scan_btn, *s_wifi_scan_lbl, *s_wifi_list;
-@@ -351,7 +360,11 @@
- 
- static void drop(lv_obj_t *p)
- {
--    lv_obj_t **const pages[] = { &s_wifi, &s_hatch, &s_ble, &s_sound, &s_sleep, &s_battery, &s_power, &s_text };
-+    lv_obj_t **const pages[] = { &s_wifi, &s_hatch, &s_ble, &s_sound, &s_sleep, &s_battery, &s_power, &s_text,
-+#ifdef MUSE_CUSTOM_CHARACTERS
-+        &s_characters,
-+#endif
-+    };
-     for (size_t i = 0; i < sizeof(pages) / sizeof(pages[0]); i++) {
-         if (*pages[i] == p) {
-             *pages[i] = NULL;
-@@ -1228,6 +1241,38 @@
- 
- /* ---------- Home ---------- */
- 
-+#ifdef MUSE_CUSTOM_CHARACTERS
-+static void on_character_choose(lv_event_t *e)
-+{
-+    int index = (int)(intptr_t)lv_event_get_user_data(e);
-+    s_character_save_failed = false;
-+    if (!muse_character_select(index)) {
-+        s_character_save_failed = true;
-+        if (s_current == s_characters) set_text(s_character_error, "Could not save. Try again.");
-+        else set_text(s_home_character, "Save failed");
-+        return;
-+    }
-+    muse_state_poke();
-+    show(s_home);
-+    muse_ui_show_face();
-+}
-+
-+static void build_character_page(lv_obj_t *tile)
-+{
-+    lv_obj_t *list;
-+    s_characters = page(tile, "CHARACTER", true, &list);
-+    int selected = muse_character_current();
-+    for (int i=0; i<muse_character_count(); i++) {
-+        lv_obj_t *value;
-+        row(list, NULL, muse_character_name(i), &value, on_character_choose, (void *)(intptr_t)i);
-+        set_text(value, i == selected ? LV_SYMBOL_OK : "");
-+    }
-+    s_character_error = note(list, "");
-+}
-+
-+static const page_t CHARACTERS = { &s_characters, build_character_page };
-+#endif
-+
- static const page_t WIFI = { &s_wifi, build_wifi_page };
- static const page_t HATCH = { &s_hatch, build_hatch_page };
- static const page_t BLE = { &s_ble, build_ble_page };
-@@ -1240,6 +1285,10 @@
- {
-     lv_obj_t *list;
-     s_home = page(tile, "SETTINGS", false, &list);
-+#ifdef MUSE_CUSTOM_CHARACTERS
-+    row(list, LV_SYMBOL_IMAGE, "Character", &s_home_character, on_nav, (void *)&CHARACTERS);
-+    row(list, LV_SYMBOL_HOME, "Pet", NULL, on_character_choose, (void *)(intptr_t)MUSE_CHARACTER_DEFAULT);
-+#endif
-     row(list, LV_SYMBOL_WIFI, "Wi-Fi", &s_home_wifi, on_nav, (void *)&WIFI);
-     row(list, LV_SYMBOL_HOME, "Muse", &s_home_hatch, on_nav, (void *)&HATCH);
-     row(list, LV_SYMBOL_BLUETOOTH, "Bluetooth", &s_home_ble, on_nav, (void *)&BLE);
-@@ -1252,6 +1301,9 @@
- 
- static void tick_home(void)
- {
-+#ifdef MUSE_CUSTOM_CHARACTERS
-+    set_text(s_home_character, s_character_save_failed ? "Save failed" : muse_character_name(muse_character_current()));
-+#endif
-     muse_wifi_status_t w;
-     muse_wifi_status(&w);
-     static const char *const WIFI_VALUES[] = { "Off", "Not set", "Joining", "", "Failed", "Not nearby" };

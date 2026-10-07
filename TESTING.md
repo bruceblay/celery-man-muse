@@ -1,0 +1,42 @@
+# Testing and known issues
+
+Checked on 2026-10-07 with ESP-IDF v6.0.1 and Muse SDK revision `1b56662588c0ea00bdee24b9bcd1835e12848e9a`.
+
+## Firmware builds
+
+Each profile is built in a separate, clean SDK checkout. These builds contain the published pack and integration patch, without the unrelated voice-session edits in the original development checkout.
+
+| Profile | Result | Physical device |
+| --- | --- | --- |
+| StickS3 | Passed | Tested |
+| StickC Plus2 | Passed | Not tested |
+| AIPI Lite | Passed | Not tested |
+| SenseCAP Watcher | Passed | Not tested |
+| Waveshare S3 1.75C | Passed | Not tested |
+| Waveshare C6 1.8 | Passed | Not tested |
+
+A successful build does not verify touch input, audio, power use, or frame rate on that board. Touchscreen character selection still needs physical-device testing.
+
+## Automated checks
+
+- Four avatars, seven Muse modes, and fourteen output sizes under AddressSanitizer and UBSan.
+- Partial display strips match full-frame output; buffer guards remain intact.
+- Default pet output matches the original SDK renderer, including after switching from each dancer.
+- Clean and repeated installation; upgrades from both earlier integration patches; refusal to overwrite custom artwork; preservation of unrelated edits.
+- Board profiles use their own chip target, configuration, and SDK flash helper.
+- Preview GIF export at 96×96 using the native renderer's scaling.
+- SDK host suite: 143 tests, 140 passed, 3 skipped on the development checkout.
+
+GitHub Actions runs the renderer, profile, and installer tests on each push. Full firmware builds are currently checked locally.
+
+## StickS3 hardware checks
+
+The default-pet release was flashed with written-data verification. The board connected to Muse, and menu tests selected each dancer and restored Default pet from each one. Selection writes completed successfully. Saved-character restoration was also confirmed after an earlier restart.
+
+The attached StickS3 retains that tested firmware. The new touchscreen integration does not change its button menu.
+
+## Known issues
+
+Intermittent brownouts can occur during Wi-Fi startup or a USB-driven reset. The console may stop responding afterward. A physical restart restored the test unit; on another occasion it recovered by itself. The cause remains unresolved, and power protections remain enabled.
+
+Long-term stability, real spoken-audio testing, and physical frame timing remain unverified. Please remove credentials and personal device details before sharing logs in an issue.
