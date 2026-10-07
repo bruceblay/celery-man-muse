@@ -1,0 +1,17 @@
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+build/
+build-*/
+sdkconfig*
+*.bin
+*.elf
+*.map
+*.log
+.env
+.env.*
+*.pem
+*.key
+avatar/*/preview-data.json
+avatar/tayne/asset-info.json

@@ -1,0 +1,170 @@
+--- a/esp32/components/muse/CMakeLists.txt
++++ b/esp32/components/muse/CMakeLists.txt
+@@ -11,6 +11,8 @@
+ # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
++
++# Modified by Celery Man for Muse: optional character-pack menu integration.
+ 
+ # Muse: the voice companion UI that runs beside Home Link on boards with a
+ # display (CONFIG_MUSE_BOARD_*). Link-only builds register an empty component,
+@@ -99,6 +101,12 @@
+     PRIV_REQUIRES ${muse_priv_requires}
+ )
+ 
++# A custom character pack may expose a roster to the compact button menu.
++# Single-avatar custom renderers and the default avatar need no new symbols.
++if(CONFIG_MUSE_ENABLED AND custom_avatar AND EXISTS "${COMPONENT_DIR}/avatar/characters.h")
++    target_compile_definitions(${COMPONENT_LIB} PRIVATE MUSE_CUSTOM_CHARACTERS=1)
++endif()
++
+ if(CONFIG_MUSE_ENABLED)
+     # LVGL spins forever on a failed assert unless LV_ASSERT_HANDLER is set,
+     # which its Kconfig can't do. Abort, so the panic handler prints a backtrace
+--- a/esp32/components/muse/muse_menu.c
++++ b/esp32/components/muse/muse_menu.c
+@@ -14,6 +14,8 @@
+  * limitations under the License.
+  */
+ 
++/* Modified by Celery Man for Muse: character picker and Pet menu action. */
++
+ #include "muse_menu.h"
+ 
+ #include <stdio.h>
+@@ -36,6 +38,9 @@
+ #include "muse_text.h"
+ #include "muse_voice.h"
+ #include "muse_wifi.h"
++#ifdef MUSE_CUSTOM_CHARACTERS
++#include "avatar/characters.h"
++#endif
+ 
+ static const char *TAG = "muse_menu";
+ 
+@@ -62,6 +67,10 @@
+  * needs a long press or a third button.
+  */
+ typedef enum {
++#ifdef MUSE_CUSTOM_CHARACTERS
++    ITEM_CHARACTER,
++    ITEM_PET,
++#endif
+     ITEM_VOLUME,
+     ITEM_SPEAKER,
+     ITEM_BRIGHTNESS,
+@@ -79,6 +88,10 @@
+ } item_t;
+ 
+ static const char *const ITEM_NAMES[ITEM_COUNT] = {
++#ifdef MUSE_CUSTOM_CHARACTERS
++    [ITEM_CHARACTER] = "Character",
++    [ITEM_PET] = "Pet",
++#endif
+     [ITEM_VOLUME] = "Volume",
+     [ITEM_SPEAKER] = "Speaker",
+     [ITEM_BRIGHTNESS] = "Brightness",
+@@ -96,6 +109,10 @@
+ 
+ /* What the talk button does on each row. */
+ static const char *const ITEM_ACTIONS[ITEM_COUNT] = {
++#ifdef MUSE_CUSTOM_CHARACTERS
++    [ITEM_CHARACTER] = "Open",
++    [ITEM_PET] = "Play",
++#endif
+     [ITEM_VOLUME] = "Change",
+     [ITEM_SPEAKER] = "Toggle",
+     [ITEM_BRIGHTNESS] = "Change",
+@@ -126,7 +143,14 @@
+     VIEW_BATTERY,
+     VIEW_POWER,
+     VIEW_RESET,
++#ifdef MUSE_CUSTOM_CHARACTERS
++    VIEW_CHARACTER,
++#endif
+ } view_t;
++
++#ifdef MUSE_CUSTOM_CHARACTERS
++static int s_character_sel;
++#endif
+ 
+ static QueueHandle_t s_keys;
+ static volatile bool s_open;
+@@ -294,6 +318,21 @@
+ static void refresh(void)
+ {
+     char buf[160];
++#ifdef MUSE_CUSTOM_CHARACTERS
++    if (s_view == VIEW_CHARACTER) {
++        size_t used = 0;
++        int count = muse_character_count();
++        for (int i = 0; i <= count && used < sizeof(buf) - 1; i++) {
++            int n = snprintf(buf + used, sizeof(buf) - used, "%s%s%s",
++                             i == s_character_sel ? "> " : "  ",
++                             i == count ? "Back" : muse_character_name(i), i == count ? "" : "\n");
++            if (n < 0 || (size_t)n >= sizeof(buf) - used) break;
++            used += (size_t)n;
++        }
++        set_text(s_page, buf);
++        return;
++    }
++#endif
+     if (s_view == VIEW_LIST) {
+         for (int i = 0; i < ITEM_COUNT; i++) {
+             value_text(i, buf, sizeof(buf));
+@@ -337,6 +376,13 @@
+     lv_obj_set_style_text_color(s_hint_select, lv_color_hex(danger ? COLOR_DANGER : COLOR_TEXT), 0);
+ 
+     switch (view) {
++#ifdef MUSE_CUSTOM_CHARACTERS
++    case VIEW_CHARACTER:
++        set_text(s_title, "CHARACTER");
++        set_text(s_hint_down, s_down_text);
++        set_text(s_hint_select, "Choose");
++        break;
++#endif
+     case VIEW_STATUS:
+     case VIEW_BATTERY:
+         set_text(s_title, view == VIEW_STATUS ? "STATUS" : "BATTERY");
+@@ -381,6 +427,16 @@
+ {
+     ESP_LOGI(TAG, "select %s", ITEM_NAMES[item]);
+     switch (item) {
++#ifdef MUSE_CUSTOM_CHARACTERS
++    case ITEM_CHARACTER:
++        s_character_sel = muse_character_current();
++        show(VIEW_CHARACTER);
++        return;
++    case ITEM_PET:
++        muse_menu_close();
++        muse_state_make_happy();
++        return;
++#endif
+     case ITEM_VOLUME:
+         muse_settings_set_volume(next_step(VOLUME_STEPS, COUNT(VOLUME_STEPS), muse_settings_volume()));
+         muse_voice_request_chirp();
+@@ -430,6 +486,23 @@
+ static void handle(muse_menu_key_t key)
+ {
+     switch (s_view) {
++#ifdef MUSE_CUSTOM_CHARACTERS
++    case VIEW_CHARACTER:
++        if (key == MUSE_MENU_DOWN) {
++            s_character_sel = (s_character_sel + 1) % (muse_character_count() + 1);
++            set_text(s_title, "CHARACTER");
++            refresh();
++        } else if (s_character_sel == muse_character_count()) {
++            show(VIEW_LIST);
++        } else if (muse_character_select(s_character_sel)) {
++            muse_menu_close();
++            muse_state_poke();
++            muse_state_make_happy();
++        } else {
++            set_text(s_title, "SAVE FAILED");
++        }
++        break;
++#endif
+     case VIEW_CLOSED:
+         if (key == MUSE_MENU_DOWN) {
+             open_menu();

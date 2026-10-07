@@ -1,0 +1,17 @@
+Celery Man for Muse
+
+This project integrates with the Muse Gadget SDK:
+https://github.com/facebookincubator/muse-gadget-sdk
+Pinned SDK revision: 1b56662588c0ea00bdee24b9bcd1835e12848e9a
+
+The unmodified headers in sdk-headers/ and the upstream context in
+patches/muse-character-menu.patch originate from that SDK.
+Copyright (c) Meta Platforms, Inc. and affiliates.
+Licensed under the Apache License, Version 2.0.
+
+The patch modifies the SDK's menu and component build configuration to
+integrate this character pack. The SDK's existing license headers remain
+in the patched files.
+
+Character names, likenesses, and source-sketch rights belong to their
+respective owners. No endorsement is implied.

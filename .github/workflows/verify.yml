@@ -1,0 +1,21 @@
+name: Verify character pack
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  renderer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check renderer with sanitizers
+        run: python3 tools/verify.py
+      - name: Install against pinned upstream
+        run: |
+          git init /tmp/muse-gadget-sdk
+          git -C /tmp/muse-gadget-sdk remote add origin https://github.com/facebookincubator/muse-gadget-sdk.git
+          git -C /tmp/muse-gadget-sdk fetch --depth=1 origin 1b56662588c0ea00bdee24b9bcd1835e12848e9a
+          git -C /tmp/muse-gadget-sdk checkout --detach FETCH_HEAD
+          python3 tools/install.py --check /tmp/muse-gadget-sdk
+          python3 tools/install.py /tmp/muse-gadget-sdk
+          python3 tools/install.py /tmp/muse-gadget-sdk
+          git -C /tmp/muse-gadget-sdk diff --check
