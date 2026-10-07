@@ -8,6 +8,7 @@
 #include "celery-man/sprites.h"
 #include "oyster/sprites.h"
 #include "characters.h"
+#include "muse_default.h"
 #ifdef ESP_PLATFORM
 #include "nvs.h"
 #include "esp_log.h"
@@ -25,6 +26,7 @@ static const struct {
     {"tayne", "Tayne", tayne_sprites, hat_wobble, 2.0f, 0xf3c971},
     {"celery-man", "Celery Man", celery_man_sprites, celebration, 2.4f, 0xb6d9e9},
     {"oyster", "Oyster", oyster_sprites, celebration, 1.6f, 0xf17d79},
+    {"muse", "Default pet", NULL, NULL, 0, 0},
 };
 static int character;
 static bool loaded;
@@ -106,6 +108,7 @@ static uint16_t dim(uint16_t c, float amount)
 
 uint32_t muse_pixel_accent(muse_mode_t mode)
 {
+    if (muse_character_current() == MUSE_CHARACTER_DEFAULT) return muse_default_accent(mode);
     switch (mode) {
     case MUSE_MODE_LISTENING: return 0x67daca;
     case MUSE_MODE_THINKING: return 0xc2a1ff;
@@ -120,6 +123,10 @@ void muse_pixel_render(const muse_pose_t *p)
 {
     if (!p) return;
     int selected = muse_character_current();
+    if (selected == MUSE_CHARACTER_DEFAULT) {
+        muse_default_render(p);
+        return;
+    }
     float t = fmaxf(0, p->t), mt = fmaxf(0, p->mode_t);
     float level = clamp01(p->level);
     bool happy = p->happy > 0 && p->mode != MUSE_MODE_OFF && p->mode != MUSE_MODE_ERROR;
@@ -192,11 +199,19 @@ void muse_pixel_render(const muse_pose_t *p)
     }
 }
 
-void muse_pixel_set_size(int px) { size = px < 1 ? 1 : px > 512 ? 512 : px; }
+void muse_pixel_set_size(int px)
+{
+    size = px < 1 ? 1 : px > 512 ? 512 : px;
+    muse_default_set_size(size);
+}
 
 void muse_pixel_scale(uint16_t *dst, int stride_px, int x0, int x1, int y0, int y1)
 {
     if (!dst || stride_px < x1-x0+1 || x0 > x1 || y0 > y1) return;
+    if (muse_character_current() == MUSE_CHARACTER_DEFAULT) {
+        muse_default_scale(dst, stride_px, x0, x1, y0, y1);
+        return;
+    }
     for (int y=y0; y<=y1; y++) {
         for (int x=x0; x<=x1; x++) {
             uint16_t c = 0;

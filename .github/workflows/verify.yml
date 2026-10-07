@@ -7,8 +7,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check renderer with sanitizers
-        run: python3 tools/verify.py
       - name: Install against pinned upstream
         run: |
           git init /tmp/muse-gadget-sdk
@@ -19,3 +17,5 @@ jobs:
           python3 tools/install.py /tmp/muse-gadget-sdk
           python3 tools/install.py /tmp/muse-gadget-sdk
           git -C /tmp/muse-gadget-sdk diff --check
+      - name: Check renderer with sanitizers
+        run: python3 tools/verify.py --sdk /tmp/muse-gadget-sdk

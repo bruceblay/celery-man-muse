@@ -1,6 +1,7 @@
 /* Verify the strip decoder contract at real device and preview sizes. */
 #include "muse_pixel.h"
 #include "../characters.h"
+#include "../muse_default.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -9,10 +10,10 @@ static uint16_t full[512*512], strip[512*16+2];
 int main(void)
 {
     const int sizes[] = {1, 64, 128, 135, 320, 512};
-    assert(muse_character_count() == 3);
+    assert(muse_character_count() == 4);
     assert(!muse_character_select(-1));
-    assert(!muse_character_select(3));
-    unsigned hashes[3] = {0};
+    assert(!muse_character_select(4));
+    unsigned hashes[4] = {0};
     for (int c=0; c<muse_character_count(); c++) {
     assert(muse_character_select(c));
     assert(muse_character_current() == c);
@@ -23,6 +24,14 @@ int main(void)
             muse_pose_t p={.mode=mode, .t=12.3f, .mode_t=0.6f, .level=0.8f, .happy=0.5f};
             muse_pixel_render(&p);
             muse_pixel_scale(full, n, 0, n-1, 0, n-1);
+            if (c == MUSE_CHARACTER_DEFAULT) {
+                uint16_t direct[512];
+                for (int y=0; y<n; y++) {
+                    muse_default_scale(direct, n, 0, n-1, y, y);
+                    assert(memcmp(direct, full+y*n, (size_t)n*2)==0);
+                }
+                assert(muse_pixel_accent(mode) == muse_default_accent(mode));
+            }
             if (n == 64 && mode == MUSE_MODE_IDLE) {
                 for (int i=0; i<n*n; i++) hashes[c] = hashes[c] * 33u + full[i];
             }
@@ -41,7 +50,20 @@ int main(void)
         }
     }
     }
-    assert(hashes[0] != hashes[1] && hashes[1] != hashes[2] && hashes[0] != hashes[2]);
-    puts("Three distinct characters, invalid selections rejected, seven modes and six strip sizes verified.");
+    for (int i=0; i<4; i++) for (int j=i+1; j<4; j++) assert(hashes[i] != hashes[j]);
+    /* Return to the default repeatedly after rendering each custom character. */
+    muse_pixel_set_size(64);
+    for (int i=0; i<3; i++) {
+        muse_pose_t p={.mode=MUSE_MODE_IDLE, .t=12, .mode_t=1};
+        assert(muse_character_select(i));
+        muse_pixel_render(&p);
+        assert(muse_character_select(MUSE_CHARACTER_DEFAULT));
+        assert(muse_character_current() == MUSE_CHARACTER_DEFAULT);
+        muse_pixel_render(&p);
+        muse_pixel_scale(full, 64, 0, 63, 0, 63);
+        muse_default_scale(strip, 64, 0, 63, 0, 15);
+        assert(memcmp(full, strip, 64*16*2)==0);
+    }
+    puts("Four distinct avatars, default-renderer equivalence, switching, seven modes and six strip sizes verified.");
     return 0;
 }

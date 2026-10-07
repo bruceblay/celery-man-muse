@@ -9,7 +9,7 @@
  
  # Muse: the voice companion UI that runs beside Home Link on boards with a
  # display (CONFIG_MUSE_BOARD_*). Link-only builds register an empty component,
-@@ -99,6 +101,13 @@
+@@ -99,6 +101,12 @@
      PRIV_REQUIRES ${muse_priv_requires}
  )
  
@@ -17,7 +17,6 @@
 +# Single-avatar custom renderers and the default avatar need no new symbols.
 +if(CONFIG_MUSE_ENABLED AND custom_avatar AND EXISTS "${COMPONENT_DIR}/avatar/characters.h")
 +    target_compile_definitions(${COMPONENT_LIB} PRIVATE MUSE_CUSTOM_CHARACTERS=1)
-+    target_sources(${COMPONENT_LIB} PRIVATE "avatar/muse_default.c")
 +endif()
 +
  if(CONFIG_MUSE_ENABLED)
@@ -29,7 +28,7 @@
   * limitations under the License.
   */
  
-+/* Modified by Celery Man for Muse: character picker and default-pet shortcut. */
++/* Modified by Celery Man for Muse: character picker and Pet menu action. */
 +
  #include "muse_menu.h"
  
@@ -72,7 +71,7 @@
  static const char *const ITEM_ACTIONS[ITEM_COUNT] = {
 +#ifdef MUSE_CUSTOM_CHARACTERS
 +    [ITEM_CHARACTER] = "Open",
-+    [ITEM_PET] = "Choose",
++    [ITEM_PET] = "Play",
 +#endif
      [ITEM_VOLUME] = "Change",
      [ITEM_SPEAKER] = "Toggle",
@@ -128,7 +127,7 @@
      case VIEW_STATUS:
      case VIEW_BATTERY:
          set_text(s_title, view == VIEW_STATUS ? "STATUS" : "BATTERY");
-@@ -381,6 +427,20 @@
+@@ -381,6 +427,16 @@
  {
      ESP_LOGI(TAG, "select %s", ITEM_NAMES[item]);
      switch (item) {
@@ -138,18 +137,14 @@
 +        show(VIEW_CHARACTER);
 +        return;
 +    case ITEM_PET:
-+        if (muse_character_select(MUSE_CHARACTER_DEFAULT)) {
-+            muse_menu_close();
-+            muse_state_poke();
-+        } else {
-+            set_text(s_title, "SAVE FAILED");
-+        }
++        muse_menu_close();
++        muse_state_make_happy();
 +        return;
 +#endif
      case ITEM_VOLUME:
          muse_settings_set_volume(next_step(VOLUME_STEPS, COUNT(VOLUME_STEPS), muse_settings_volume()));
          muse_voice_request_chirp();
-@@ -430,6 +490,23 @@
+@@ -430,6 +486,23 @@
  static void handle(muse_menu_key_t key)
  {
      switch (s_view) {

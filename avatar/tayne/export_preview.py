@@ -15,6 +15,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 ap = argparse.ArgumentParser()
 ap.add_argument('--character', choices=['tayne', 'celery-man', 'oyster'], default='tayne')
+ap.add_argument('--sdk', type=Path, default=ROOT.parent/'muse-gadget-sdk')
 args = ap.parse_args()
 names = ['tayne', 'celery-man', 'oyster']
 dest = HERE.parent / args.character
@@ -26,7 +27,9 @@ class Pose(C.Structure):
 with tempfile.TemporaryDirectory() as td:
     libpath = Path(td) / "tayne.dylib"
     subprocess.run(["cc", "-O2", "-shared", "-fPIC", "-I", str(ROOT / "sdk-headers"),
-                    str(HERE.parent / "muse_pixel.c"), "-lm", "-o", str(libpath)], check=True)
+                    f'-DMUSE_DEFAULT_SOURCE="{(args.sdk / "esp32/avatar/muse_pixel.c").resolve()}"',
+                    str(HERE.parent / "muse_pixel.c"), str(HERE.parent / "muse_default.c"),
+                    "-lm", "-o", str(libpath)], check=True)
     lib = C.CDLL(str(libpath))
     lib.muse_character_select(names.index(args.character))
     lib.muse_pixel_render.argtypes = [C.POINTER(Pose)]

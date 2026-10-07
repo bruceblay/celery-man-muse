@@ -11,7 +11,9 @@ Licensed under the Apache License, Version 2.0.
 
 The patch modifies the SDK's menu and component build configuration to
 integrate this character pack. The SDK's existing license headers remain
-in the patched files.
+in the patched files. The default-avatar adapter compiles the original
+renderer from the user's SDK checkout; that renderer and its artwork are
+not redistributed or relicensed in this repository.
 
 Character names, likenesses, and source-sketch rights belong to their
 respective owners. No endorsement is implied.

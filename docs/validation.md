@@ -31,9 +31,8 @@ The console can then stop responding. A physical restart restored the test
 unit. Brownouts were also observed before the original Tayne-only firmware,
 but their cause has not been established. No power protections were disabled.
 
-Automated on-device switching through all three characters and the Pet menu
-action remains incomplete. Real spoken-audio testing, prolonged stability,
-and physical frame timing are also unverified. This is an early prototype,
+Real spoken-audio testing, prolonged stability,
+and physical frame timing remain unverified. This is an early prototype,
 not a production-ready hardware release.
 
 Raw device logs, configuration, firmware binaries, identifiers, and pairing
@@ -47,3 +46,22 @@ rejected, installation succeeded, and a second installation made no changes.
 The installed renderer passed the same sanitizer checks against the SDK's
 real headers. The bundled host headers matched upstream byte for byte.
 GitHub Actions repeats renderer verification and clean/repeated installation.
+
+## Default-pet correction
+
+Pet now selects the original Muse avatar rather than triggering a short happy
+animation. Default pet is also the fourth Character entry. It uses the SDK's
+original renderer, with the saved ID `muse`; existing dancer IDs are unchanged.
+
+Host sanitizer checks cover four distinct avatars and pixel-for-pixel default
+renderer routing across all seven modes and six output sizes, plus switching
+back from every dancer. The installer was checked for safe upgrades from the
+first release, refusal to overwrite local edits, and repeated installation.
+
+The corrected StickS3 build and SDK host suite passed, and esptool verified
+the flash. One startup brownout occurred; the board then recovered and
+established its Muse session. On-device serial menu tests selected each of
+Tayne, Celery Man and Oyster and used Pet to return to Default pet each time.
+The selection log is emitted only after the NVS commit succeeds. Final status
+reported Muse Connected and Link Online, with Default pet left selected.
+No additional USB reset was sent for a persistence check of this revision.

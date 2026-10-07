@@ -5,10 +5,13 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tempfile
+import hashlib
+import json
 
 ROOT = Path(__file__).resolve().parents[1]
 REVISION = '1b56662588c0ea00bdee24b9bcd1835e12848e9a'
-RUNTIME = ['muse_pixel.c', 'characters.h'] + [
+RUNTIME = ['muse_pixel.c', 'characters.h', 'muse_default.c', 'muse_default.h'] + [
     f'{name}/sprites.h' for name in ('tayne', 'celery-man', 'oyster')
 ]
 
@@ -23,12 +26,25 @@ def install(sdk, check=False):
     if revision != REVISION:
         raise RuntimeError(f'Use the supported SDK revision {REVISION}; found {revision}.')
     patch = str(ROOT / 'patches/muse-character-menu.patch')
-    def applicable(reverse=False):
-        args = git + ['apply', '--check'] + (['--reverse'] if reverse else []) + [patch]
+    old_patch = str(ROOT / 'patches/v1-character-menu.patch')
+    def applicable(reverse=False, path=patch):
+        args = git + ['apply', '--check'] + (['--reverse'] if reverse else []) + [path]
         return subprocess.run(args, capture_output=True).returncode == 0
     applied = applicable(reverse=True)
-    if not applied and not applicable():
+    legacy = not applied and applicable(reverse=True, path=old_patch)
+    if not applied and not legacy and not applicable():
         raise RuntimeError('The SDK menu/build files conflict with the patch; no files were changed.')
+    integration = ['esp32/components/muse/CMakeLists.txt', 'esp32/components/muse/muse_menu.c']
+    if legacy:
+        # Validate the complete migration in isolation before touching the SDK.
+        with tempfile.TemporaryDirectory(prefix='celery-man-upgrade-') as tmp:
+            for name in integration:
+                target = Path(tmp)/name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(sdk/name, target)
+            subprocess.run(['git', 'apply', '--reverse', old_patch], cwd=tmp, check=True)
+            subprocess.run(['git', 'apply', '--check', patch], cwd=tmp, check=True)
+    old_hashes = json.loads((ROOT/'patches/v1-runtime-sha256.json').read_text())
     avatar = component / 'avatar'
     if avatar.is_symlink() or any((avatar / f).is_symlink() for f in RUNTIME):
         raise RuntimeError('Refusing to install through an avatar symlink.')
@@ -36,30 +52,30 @@ def install(sdk, check=False):
         source, target = ROOT / 'avatar' / name, avatar / name
         if target.parent.is_symlink():
             raise RuntimeError(f'Refusing to install through symlink: {target.parent}')
-        if target.exists() and (not target.is_file() or target.read_bytes() != source.read_bytes()):
+        known_old = legacy and target.is_file() and hashlib.sha256(target.read_bytes()).hexdigest() == old_hashes.get(name)
+        if target.exists() and not known_old and (not target.is_file() or target.read_bytes() != source.read_bytes()):
             raise RuntimeError(f'Existing custom avatar file differs: {target}. Back it up separately before installing.')
     if check:
-        print('Compatible. Menu patch ' + ('already applied.' if applied else 'ready to apply.'))
+        print('Compatible. Menu patch ' + ('already applied.' if applied else 'ready to upgrade.' if legacy else 'ready to apply.'))
         return
-    created = []
-    patched = False
+    touched = [sdk/name for name in integration] + [avatar/name for name in RUNTIME]
+    previous = {p: p.read_bytes() if p.exists() else None for p in touched}
     try:
+        if legacy:
+            subprocess.run(git + ['apply', '--reverse', old_patch], check=True)
         if not applied:
             subprocess.run(git + ['apply', patch], check=True)
-            patched = True
         for name in RUNTIME:
             target = avatar / name
-            if not target.exists():
+            if not target.exists() or target.read_bytes() != (ROOT/'avatar'/name).read_bytes():
                 target.parent.mkdir(parents=True, exist_ok=True)
-                created.append(target)
                 shutil.copyfile(ROOT / 'avatar' / name, target)
     except Exception:
-        for target in reversed(created):
-            target.unlink(missing_ok=True)
-        if patched:
-            subprocess.run(git + ['apply', '--reverse', patch], check=True)
+        for target, data in previous.items():
+            if data is None: target.unlink(missing_ok=True)
+            else: target.write_bytes(data)
         raise
-    print(f'Installed Tayne, Celery Man and Oyster into {avatar}')
+    print(f'Installed Tayne, Celery Man, Oyster and the default-pet integration into {avatar}')
     print('Next: configure and build the StickS3 firmware using the README.')
 
 
