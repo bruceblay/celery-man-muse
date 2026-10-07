@@ -48,6 +48,7 @@ def install(sdk, check=False):
             subprocess.run(['git', 'apply', '--reverse', old_patch], cwd=tmp, check=True)
             subprocess.run(['git', 'apply', '--check', patch], cwd=tmp, check=True)
     old_hashes = json.loads((ROOT/'patches/v1-runtime-sha256.json').read_text())
+    previous_hashes = json.loads((ROOT/'patches/v3-runtime-sha256.json').read_text())
     avatar = component / 'avatar'
     if avatar.is_symlink() or any((avatar / f).is_symlink() for f in RUNTIME):
         raise RuntimeError('Refusing to install through an avatar symlink.')
@@ -55,7 +56,10 @@ def install(sdk, check=False):
         source, target = ROOT / 'avatar' / name, avatar / name
         if target.parent.is_symlink():
             raise RuntimeError(f'Refusing to install through symlink: {target.parent}')
-        known_old = legacy and target.is_file() and hashlib.sha256(target.read_bytes()).hexdigest() == old_hashes.get(name)
+        known_old = False
+        if target.is_file():
+            digest = hashlib.sha256(target.read_bytes()).hexdigest()
+            known_old = (legacy and digest == old_hashes.get(name)) or (applied and digest == previous_hashes.get(name))
         if target.exists() and not known_old and (not target.is_file() or target.read_bytes() != source.read_bytes()):
             raise RuntimeError(f'Existing custom avatar file differs: {target}. Back it up separately before installing.')
     if check:

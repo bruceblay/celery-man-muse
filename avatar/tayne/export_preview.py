@@ -48,7 +48,8 @@ with tempfile.TemporaryDirectory() as td:
     for name, mode in modes.items():
         frames = []
         display_frames = []
-        n = 40 if name == "happy" else [25,30,20][names.index(args.character)] if name == "idle" else 30
+        # Tayne's complete shuffle/turn/hat phrase is 54 beats of 80 ms.
+        n = 40 if name == "happy" else [54,30,20][names.index(args.character)] if name == "idle" else 30
         for i in range(n):
             t = i * 0.08
             level = max(0, abs(math.sin(t*6.3)) * (0.55+0.45*math.sin(t*1.7+1)))

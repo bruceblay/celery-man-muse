@@ -53,6 +53,28 @@ class InstallTests(unittest.TestCase):
         self.assertEqual(source.read_text(), '/* Local artwork */\n')
         self.assertEqual(self.diff(), b'')
 
+    def test_upgrade_previous_artwork(self):
+        install(self.sdk)
+        avatar = self.sdk/'esp32/components/muse/avatar'
+        for name in RUNTIME:
+            previous = subprocess.check_output(['git', '-C', str(ROOT), 'show',
+                '362e373:avatar/' + name])
+            (avatar/name).write_bytes(previous)
+        install(self.sdk, check=True)
+        install(self.sdk)
+        for name in RUNTIME:
+            self.assertEqual((avatar/name).read_bytes(), (ROOT/'avatar'/name).read_bytes())
+
+    def test_modified_previous_artwork_is_preserved(self):
+        install(self.sdk)
+        source = self.sdk/'esp32/components/muse/avatar/muse_pixel.c'
+        source.write_bytes(subprocess.check_output(['git', '-C', str(ROOT), 'show',
+            '362e373:avatar/muse_pixel.c']) + b'\n/* Local modification */\n')
+        before = source.read_bytes()
+        with self.assertRaisesRegex(RuntimeError, 'differs'):
+            install(self.sdk)
+        self.assertEqual(source.read_bytes(), before)
+
     def test_upgrade_keeps_unrelated_changes(self):
         subprocess.run(['git', '-C', str(self.sdk), 'apply', str(ROOT/'patches/v2-character-menu.patch')], check=True)
         avatar = self.sdk/'esp32/components/muse/avatar'

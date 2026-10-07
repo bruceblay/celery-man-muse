@@ -7,6 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Installer upgrade tests use the previous release's artwork.
       - name: Install against pinned upstream
         run: |
           git init /tmp/muse-gadget-sdk

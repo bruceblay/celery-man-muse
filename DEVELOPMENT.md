@@ -2,7 +2,9 @@
 
 ## How it fits into Muse
 
-`avatar/muse_pixel.c` implements Muse's existing render interface. Each dancer has sixteen 64×64 RGB565 frames. Together they use 384 KiB of flash and share one 8 KiB render buffer. The default pet uses the SDK's original renderer and its own buffers.
+`avatar/muse_pixel.c` implements Muse's existing render interface. Tayne has thirty-two 64×64 RGB565 frames; Celery Man and Oyster have sixteen each. Together they use 512 KiB of flash and share one 8 KiB render buffer. The default pet uses the SDK's original renderer and its own buffers.
+
+Tayne's idle routine lasts 4.32 seconds, with individual pose holds, two shuffles, a turn, and a hat flourish. His happy reaction uses a faster hat-and-turn sequence. The turn mirrors two poses for its opposite side. Listening and speaking keep their original poses.
 
 The SDK chooses the square avatar area for each screen. The renderer scales into that area without stretching the character, and writes display strips rather than allocating a full-screen image. Larger screens keep the same pixel-art style. See [DEVICES.md](DEVICES.md) for native sizes.
 

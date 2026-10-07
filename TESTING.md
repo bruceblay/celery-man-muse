@@ -20,9 +20,11 @@ A successful build does not verify touch input, audio, power use, or frame rate 
 ## Automated checks
 
 - Four avatars, seven Muse modes, and fourteen output sizes under AddressSanitizer and UBSan.
+- Complete custom-character animation cycles, including Tayne's mirrored turn poses and 4.32-second loop boundary.
 - Partial display strips match full-frame output; buffer guards remain intact.
 - Default pet output matches the original SDK renderer, including after switching from each dancer.
 - Clean and repeated installation; upgrades from both earlier integration patches; refusal to overwrite custom artwork; preservation of unrelated edits.
+- Upgrade from the previous dance artwork, with changed local artwork still protected.
 - Board profiles use their own chip target, configuration, and SDK flash helper.
 - Preview GIF export at 96×96 using the native renderer's scaling.
 - SDK host suite: 143 tests, 140 passed, 3 skipped on the development checkout.
@@ -34,6 +36,8 @@ GitHub Actions runs the renderer, profile, and installer tests on each push. Ful
 The default-pet release was flashed with written-data verification. The board connected to Muse, and menu tests selected each dancer and restored Default pet from each one. Selection writes completed successfully. Saved-character restoration was also confirmed after an earlier restart.
 
 The attached StickS3 retains that tested firmware. The new touchscreen integration does not change its button menu.
+
+The revised Tayne dance has been checked in renderer previews and firmware builds, but has not been flashed or checked on a physical display.
 
 ## Known issues
 

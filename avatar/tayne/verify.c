@@ -53,6 +53,37 @@ int main(void)
     }
     }
     for (int i=0; i<4; i++) for (int j=i+1; j<4; j++) assert(hashes[i] != hashes[j]);
+    /* Walk complete animation cycles, including both sides of Tayne's turn.
+     * The one-pose strip checks above cannot catch a bad sprite index later. */
+    muse_pixel_set_size(64);
+    unsigned dance_hashes[54] = {0};
+    for (int c=0; c<3; c++) {
+        assert(muse_character_select(c));
+        for (int mode=0; mode<MUSE_MODE_COUNT; mode++) {
+            for (int happy=0; happy<2; happy++) {
+                for (int tick=0; tick<160; tick++) {
+                    float seconds=tick*0.08f + 0.01f;
+                    muse_pose_t p={.mode=mode, .t=seconds, .mode_t=seconds,
+                                  .level=(tick%11)*0.1f, .happy=(float)happy};
+                    muse_pixel_render(&p);
+                    muse_pixel_scale(full, 64, 0, 63, 0, 63);
+                    if (c==0 && mode==MUSE_MODE_IDLE && !happy) {
+                        unsigned hash=0;
+                        for (int i=0; i<4096; i++) hash=hash*33u+full[i];
+                        if (tick<54) dance_hashes[tick]=hash;
+                        else assert(hash==dance_hashes[tick%54]);
+                    }
+                }
+            }
+        }
+    }
+    int unique=0;
+    for (int i=0; i<54; i++) {
+        bool seen=false;
+        for (int j=0; j<i; j++) if (dance_hashes[i]==dance_hashes[j]) seen=true;
+        if (!seen) unique++;
+    }
+    assert(unique>16);
     /* Return to the default repeatedly after rendering each custom character. */
     muse_pixel_set_size(64);
     for (int i=0; i<3; i++) {

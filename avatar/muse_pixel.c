@@ -16,6 +16,32 @@
 
 static const int hat_wobble[] = {8,9,8,10,8,11,0,11};
 static const int celebration[] = {8,9,10,9,10,11,8,11};
+/* Each beat is 80 ms. Hold the weight-bearing poses, move quickly through
+ * recoveries, then punctuate two shuffles with a turn and a hat flourish.
+ * Negative frames mirror a sprite for the opposite side of the turn. */
+typedef struct { int frame; unsigned beats; } dance_step_t;
+static const dance_step_t tayne_dance[] = {
+    {16,1}, {17,2}, {18,2}, {19,1}, {20,1}, {21,2}, {22,2}, {23,1},
+    {16,1}, {17,2}, {18,2}, {19,1}, {20,1}, {21,2}, {22,2}, {23,1},
+    {24,3}, {31,2}, {26,2}, {27,2}, {28,2}, {-27,2}, {-26,2}, {25,2},
+    {24,2}, {9,2}, {8,1}, {10,2}, {8,1}, {16,5},
+};
+static const dance_step_t tayne_happy[] = {
+    {8,2}, {9,2}, {8,1}, {10,2}, {8,1}, {9,1}, {10,1},
+    {24,2}, {31,1}, {26,1}, {27,1}, {28,1}, {-27,1}, {-26,1}, {25,1}, {24,1},
+};
+
+static int dance_frame(const dance_step_t *steps, unsigned count, float seconds)
+{
+    unsigned length = 0;
+    for (unsigned i=0; i<count; i++) length += steps[i].beats;
+    unsigned beat = (unsigned)(fmodf(seconds, length * 0.08f) / 0.08f);
+    for (unsigned i=0; i<count; i++) {
+        if (beat < steps[i].beats) return steps[i].frame;
+        beat -= steps[i].beats;
+    }
+    return steps[0].frame;
+}
 static const struct {
     const char *id, *name;
     const uint16_t (*frames)[4096];
@@ -23,7 +49,7 @@ static const struct {
     float period;
     uint32_t accent;
 } characters[] = {
-    {"tayne", "Tayne", tayne_sprites, hat_wobble, 2.0f, 0xf3c971},
+    {"tayne", "Tayne", tayne_sprites, hat_wobble, 4.32f, 0xf3c971},
     {"celery-man", "Celery Man", celery_man_sprites, celebration, 2.4f, 0xb6d9e9},
     {"oyster", "Oyster", oyster_sprites, celebration, 1.6f, 0xf17d79},
     {"muse", "Default pet", NULL, NULL, 0, 0},
@@ -143,7 +169,8 @@ void muse_pixel_render(const muse_pose_t *p)
         light = clamp01(mt / 0.6f);
         break;
     case MUSE_MODE_IDLE:
-        frame = (int)(fmodf(t, characters[selected].period) * 8 / characters[selected].period) % 8;
+        frame = selected == 0 ? dance_frame(tayne_dance, sizeof(tayne_dance)/sizeof(tayne_dance[0]), mt) :
+            (int)(fmodf(t, characters[selected].period) * 8 / characters[selected].period) % 8;
         break;
     case MUSE_MODE_LISTENING:
         frame = level > 0.35f ? 13 : 12;
@@ -168,14 +195,18 @@ void muse_pixel_render(const muse_pose_t *p)
     }
     if (happy) {
         int step = (int)(fmodf(fmaxf(0, t-pet_started), 1.6f) * 5);
-        frame = characters[selected].happy[step < 8 ? step : 7];
+        frame = selected == 0 ? dance_frame(tayne_happy, sizeof(tayne_happy)/sizeof(tayne_happy[0]), fmaxf(0, t-pet_started)) :
+            characters[selected].happy[step < 8 ? step : 7];
     }
+    bool mirror = frame < 0;
+    if (mirror) frame = -frame;
     memset(pixels, 0, sizeof(pixels));
     for (int y = 0; y < MUSE_PX_H; y++) {
         int sy = y - dy;
         if (sy < 0 || sy >= MUSE_PX_H) continue;
         for (int x = 0; x < MUSE_PX_W; x++) {
-            uint16_t c = characters[selected].frames[frame][sy * MUSE_PX_W + x];
+            int sx = mirror ? MUSE_PX_W - 1 - x : x;
+            uint16_t c = characters[selected].frames[frame][sy * MUSE_PX_W + sx];
             pixels[y * MUSE_PX_W + x] = light < 1 ? dim(c, light) : c;
         }
     }
