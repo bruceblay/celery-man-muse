@@ -14,7 +14,7 @@ All of Tayne's poses use actual frames from the [supplied sketch](https://www.yo
 
 Each sequence uses consecutive samples at 15 fps. Backgrounds are removed before scaling onto a black 64×64 canvas. Recorded masks remove the old window edges around the extended hands and boots. The portrait mask preserves enclosed highlights such as reflections in the sunglasses. The approved idle and happy sheets are unchanged.
 
-Frame order and cadence follow the footage, with no generated dance poses, added mirroring, or invented transitions. These short excerpts repeat as loops; their ends are not blended. Clipping already present in the source remains. Speaking loops while Muse is in speaking mode, independently of the audio meter. It does not track individual phonemes. Boot, error, and off use a filmed neutral frame.
+Frame order and cadence follow the footage, with no generated dance poses, added mirroring, or invented transitions. These short excerpts repeat as loops; their ends are not blended. Clipping already present in the source remains. Speaking loops while Muse is in speaking mode, independently of the audio meter. It does not track individual phonemes. Boot reuses the Flarhgunnstow dance. Error and off use a filmed neutral frame.
 
 [video-clips.json](avatar/tayne/video-clips.json) records timestamps, crops, keys, and masks. With FFmpeg, Pillow, and a local 1920×1080 copy of the video, rebuild the sheets with:
 

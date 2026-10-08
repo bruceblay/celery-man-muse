@@ -50,12 +50,14 @@ with tempfile.TemporaryDirectory() as td:
         display_frames = []
         video_dance = name in ('idle', 'happy')
         conversation = name in ('speaking', 'listening', 'thinking')
-        interval = 1/15 if video_dance or conversation else 0.08
+        interval = 1/15 if video_dance or conversation or name == 'boot' else 0.08
         n = 24 if video_dance else (24 if name == "speaking" else 12 if name == "listening" else 90) if conversation else 40 if name == "happy" else [20,30,20][names.index(args.character)] if name == "idle" else 30
         if args.character == 'celery-man' and conversation:
             n = 24 if name != 'thinking' else 72
         if args.character == 'oyster':
             n = {'idle':8, 'listening':10, 'speaking':8, 'thinking':74, 'happy':24}.get(name,n)
+        if name == 'boot':
+            n = 37 if args.character == 'oyster' else 24
         export_gif = name in ('idle', 'happy') or conversation
         for i in range(n):
             t = i * interval

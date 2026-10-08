@@ -147,7 +147,10 @@ void muse_pixel_render(const muse_pose_t *p)
     float light = 1;
     switch (p->mode) {
     case MUSE_MODE_BOOT:
-        frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : selected == 1 ? CELERY_MAN_IDLE_FIRST : OYSTER_FRONT_FIRST + 7;
+        /* Tayne boots into Flarhgunnstow; the others reuse their thinking loops. */
+        frame = selected == 0 ? TAYNE_HAPPY_FIRST + video_frame(mt, TAYNE_HAPPY_COUNT) :
+            selected == 1 ? CELERY_MAN_IDLE_FIRST + video_frame(mt, CELERY_MAN_IDLE_COUNT) :
+            OYSTER_PRINTOUT_FIRST + oyster_print_frame(mt);
         dy = (int)(12 * (1 - clamp01(mt / 0.8f)));
         light = clamp01(mt / 0.6f);
         break;
