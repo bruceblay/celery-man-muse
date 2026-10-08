@@ -51,13 +51,11 @@ with tempfile.TemporaryDirectory() as td:
         video_dance = args.character == 'tayne' and name in ('idle', 'happy')
         conversation = args.character == 'tayne' and name in ('speaking', 'listening', 'thinking')
         interval = 1/15 if video_dance or conversation else 0.08
-        n = 24 if video_dance else (48 if name == "speaking" else 12 if name == "listening" else 90) if conversation else 40 if name == "happy" else [20,30,20][names.index(args.character)] if name == "idle" else 30
+        n = 24 if video_dance else (24 if name == "speaking" else 12 if name == "listening" else 90) if conversation else 40 if name == "happy" else [20,30,20][names.index(args.character)] if name == "idle" else 30
         export_gif = name in ('idle', 'happy') or conversation
         for i in range(n):
             t = i * interval
             level = max(0, abs(math.sin(t*6.3)) * (0.55+0.45*math.sin(t*1.7+1)))
-            if conversation and name == 'speaking':
-                level = max(0.18, level) if 0.35 <= t%3.2 < 2.2 else 0
             happy = max(0, min(1, (2.0-t)/0.4)) if name == "happy" and t >= 0.4 else 0
             if video_dance and name == 'happy':
                 happy = 1  # Show the complete source sequence without idle lead-in/recovery.

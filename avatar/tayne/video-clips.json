@@ -34,7 +34,7 @@
       "frames": 12,
       "grid": [4, 3],
       "preserve_highlights": true,
-      "description": "Frontal speech close-up; closed-mouth frame 9 supplies speech pauses"
+      "description": "Frontal speech close-up; closed-mouth frame 9 supplies neutral poses"
     },
     {
       "name": "listening",
@@ -231,5 +231,5 @@
       "description": "Raised-arm kicks on the turquoise desktop, matching the sticker pose"
     }
   ],
-  "processing": "Consecutive source-video samples at 15 fps; no generated poses, mirrored additions, or facial morphing. Original idle and happy pixels are unchanged. Speaking follows voice activity and rests on a filmed closed-mouth frame. New dances use recorded window-edge mattes to retain hands and boots."
+  "processing": "Consecutive source-video samples at 15 fps; no generated poses, mirrored additions, or facial morphing. Original idle and happy pixels are unchanged. Speaking loops during speaking mode independently of the audio meter. New dances use recorded window-edge mattes to retain hands and boots."
 }

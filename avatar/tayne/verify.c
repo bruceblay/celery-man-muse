@@ -95,28 +95,33 @@ int main(void)
         muse_pixel_scale(full, 64, 0, 63, 0, 63);
         assert(memcmp(full, tayne_sprites[TAYNE_LISTENING_FIRST+tick%TAYNE_LISTENING_COUNT], 4096*2)==0);
     }
-    /* Continuous speech follows the filmed sequence without bobbing or morphing. */
-    for (int tick=0; tick<48; tick++) {
-        muse_pose_t p={.mode=MUSE_MODE_SPEAKING, .t=tick/15.0f, .mode_t=tick/15.0f, .level=0.8f};
-        muse_pixel_render(&p);
-        muse_pixel_scale(full, 64, 0, 63, 0, 63);
-        assert(memcmp(full, tayne_sprites[TAYNE_FRONT_FIRST+tick%TAYNE_FRONT_COUNT], 4096*2)==0);
+    /* Speaking advances even when the device's audio meter stays at zero.
+     * Use a nonzero device uptime and verify two separate entries into the mode. */
+    const float speech_levels[]={0, 0.01f, 0.08f, 0.8f};
+    for (unsigned level=0; level<sizeof(speech_levels)/sizeof(speech_levels[0]); level++) {
+        for (int entry=0; entry<2; entry++) {
+            muse_pose_t idle={.mode=MUSE_MODE_IDLE, .t=100+entry*5};
+            muse_pixel_render(&idle);
+            unsigned first_hash=0;
+            int changed=0;
+            for (int tick=0; tick<48; tick++) {
+                muse_pose_t p={.mode=MUSE_MODE_SPEAKING, .t=100+entry*5+tick/15.0f,
+                              .mode_t=tick/15.0f, .level=speech_levels[level]};
+                muse_pixel_render(&p);
+                muse_pixel_scale(full, 64, 0, 63, 0, 63);
+                assert(memcmp(full, tayne_sprites[TAYNE_FRONT_FIRST+tick%TAYNE_FRONT_COUNT], 4096*2)==0);
+                unsigned hash=0;
+                for (int i=0; i<4096; i++) hash=hash*33u+full[i];
+                if (!tick) first_hash=hash;
+                else if (hash!=first_hash) changed++;
+            }
+            assert(changed>24);
+            idle.t+=4; idle.mode_t=0;
+            muse_pixel_render(&idle);
+            muse_pixel_scale(full, 64, 0, 63, 0, 63);
+            assert(memcmp(full, tayne_sprites[TAYNE_IDLE_FIRST],4096*2)==0);
+        }
     }
-    muse_pose_t quiet={.mode=MUSE_MODE_SPEAKING, .t=4, .mode_t=4, .level=0};
-    muse_pixel_render(&quiet);
-    muse_pixel_scale(full, 64, 0, 63, 0, 63);
-    assert(memcmp(full, tayne_sprites[TAYNE_FRONT_FIRST+9], 4096*2)==0);
-    /* A brief audio gap keeps the phrase going; a real pause closes the mouth. */
-    quiet.t=5; quiet.level=0.8f;
-    muse_pixel_render(&quiet);
-    quiet.t=5.1f; quiet.level=0;
-    muse_pixel_render(&quiet);
-    muse_pixel_scale(full, 64, 0, 63, 0, 63);
-    assert(memcmp(full, tayne_sprites[TAYNE_FRONT_FIRST+1], 4096*2)==0);
-    quiet.t=5.3f;
-    muse_pixel_render(&quiet);
-    muse_pixel_scale(full, 64, 0, 63, 0, 63);
-    assert(memcmp(full, tayne_sprites[TAYNE_FRONT_FIRST+9], 4096*2)==0);
     /* Thinking follows the second filmed dance, with dots below his boots. */
     for (int tick=0; tick<40; tick++) {
         muse_pose_t p={.mode=MUSE_MODE_THINKING, .t=tick/15.0f, .mode_t=tick/15.0f};

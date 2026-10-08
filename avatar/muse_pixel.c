@@ -39,8 +39,6 @@ static int size = MUSE_PX_W * 2;
 static float pet_started;
 static float last_t;
 static bool was_happy;
-static bool tayne_talking;
-static float speech_started, speech_last_voice;
 
 int muse_character_count(void) { return (int)(sizeof(characters)/sizeof(characters[0])); }
 const char *muse_character_name(int index)
@@ -82,7 +80,6 @@ bool muse_character_select(int index)
 #endif
     character = index;
     was_happy = false;
-    tayne_talking = false;
     return true;
 }
 
@@ -138,8 +135,7 @@ void muse_pixel_render(const muse_pose_t *p)
     float t = fmaxf(0, p->t), mt = fmaxf(0, p->mode_t);
     float level = clamp01(p->level);
     bool happy = p->happy > 0 && p->mode != MUSE_MODE_OFF && p->mode != MUSE_MODE_ERROR;
-    if (t < last_t) { was_happy = false; tayne_talking = false; }
-    if (p->mode != MUSE_MODE_SPEAKING) tayne_talking = false;
+    if (t < last_t) was_happy = false;
     if (happy && !was_happy) pet_started = t;
     was_happy = happy;
     last_t = t;
@@ -164,11 +160,9 @@ void muse_pixel_render(const muse_pose_t *p)
         break;
     case MUSE_MODE_SPEAKING:
         if (selected == 0) {
-            if (level >= 0.14f && !tayne_talking) { tayne_talking = true; speech_started = t; }
-            if (level >= 0.08f) speech_last_voice = t;
-            if (tayne_talking && level < 0.08f && t-speech_last_voice > 0.14f) tayne_talking = false;
-            frame = TAYNE_FRONT_FIRST + (tayne_talking ?
-                tayne_video_frame(fmaxf(0, t-speech_started), TAYNE_FRONT_COUNT) : 9);
+            /* Speaking is the playback signal. The meter can be zero or stale,
+             * so it must not prevent the filmed sequence from advancing. */
+            frame = TAYNE_FRONT_FIRST + tayne_video_frame(mt, TAYNE_FRONT_COUNT);
         } else {
             frame = level > 0.13f ? 14 : 15;
             dy = level > 0.7f ? -1 : 0;

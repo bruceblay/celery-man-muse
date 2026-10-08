@@ -49,7 +49,7 @@ def install(sdk, check=False):
             subprocess.run(['git', 'apply', '--check', patch], cwd=tmp, check=True)
     old_hashes = json.loads((ROOT/'patches/v1-runtime-sha256.json').read_text())
     previous_hashes = [json.loads((ROOT/'patches'/name).read_text()) for name in
-                       ('v3-runtime-sha256.json', 'v4-runtime-sha256.json', 'v5-runtime-sha256.json')]
+                       ('v3-runtime-sha256.json', 'v4-runtime-sha256.json', 'v5-runtime-sha256.json', 'v6-runtime-sha256.json')]
     avatar = component / 'avatar'
     if avatar.is_symlink() or any((avatar / f).is_symlink() for f in RUNTIME):
         raise RuntimeError('Refusing to install through an avatar symlink.')

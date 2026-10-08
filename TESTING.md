@@ -21,7 +21,7 @@ A successful build does not verify touch input, audio, power use, or frame rate 
 
 - Four avatars, seven Muse modes, and fourteen output sizes under AddressSanitizer and UBSan.
 - Complete custom-character animation cycles, including Tayne's 1.6-second video loops. Every idle, listening, and thinking frame must match its packed source frame, in order, at exact 15 fps boundaries.
-- Tayne's speech sequence follows its source frames, tolerates brief audio gaps, and returns to a closed mouth during silence. Microphone levels do not interrupt the listening dance; thinking dots remain below the boots.
+- Tayne's speech sequence follows its source frames even with zero or low audio-level input, restarts on re-entry to speaking mode, and returns to idle when that mode ends. Microphone levels do not interrupt the listening dance; thinking dots remain below the boots.
 - Approved idle/happy sprite sheets and GIFs are unchanged by the conversation-state update. Celery Man and Oyster render identically to the previous version across 840 sampled poses.
 - Partial display strips match full-frame output; buffer guards remain intact.
 - Default pet output matches the original SDK renderer, including after switching from each dancer.
@@ -30,6 +30,8 @@ A successful build does not verify touch input, audio, power use, or frame rate 
 - Board profiles use their own chip target, configuration, and SDK flash helper.
 - Preview GIF export at 96×96 using the native renderer's scaling.
 - SDK host suite: 143 tests, 140 passed, 3 skipped on the development checkout.
+
+The speaking-freeze regression fails against the previous renderer: zero audio-level input holds one frame there. The corrected renderer advances through all twelve speech frames at zero, low, and normal levels. Its StickS3 firmware build passed and was flashed with hash verification.
 
 GitHub Actions runs the renderer, profile, and installer tests on each push. Full firmware builds are currently checked locally.
 
