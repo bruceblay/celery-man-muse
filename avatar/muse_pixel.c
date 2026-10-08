@@ -1,4 +1,4 @@
-/* Celery Man character pack for Muse. Video dances and generated Oyster poses.
+/* Celery Man character pack for Muse. Dances and portraits from the sketch.
  * Source sheets and provenance live in the sibling character directories.
  */
 #include "muse_pixel.h"
@@ -14,18 +14,15 @@
 #include "esp_log.h"
 #endif
 
-static const int celebration[] = {8,9,10,9,10,11,8,11};
 static const struct {
     const char *id, *name;
     const uint16_t (*frames)[4096];
-    const int *happy;
-    float period;
     uint32_t accent;
 } characters[] = {
-    {"tayne", "Tayne", tayne_sprites, NULL, 1.6f, 0xf3c971},
-    {"celery-man", "Celery Man", celery_man_sprites, NULL, 1.6f, 0xb6d9e9},
-    {"oyster", "Oyster", oyster_sprites, celebration, 1.6f, 0xf17d79},
-    {"muse", "Default pet", NULL, NULL, 0, 0},
+    {"tayne", "Tayne", tayne_sprites, 0xf3c971},
+    {"celery-man", "Celery Man", celery_man_sprites, 0xb6d9e9},
+    {"oyster", "Oyster", oyster_sprites, 0xf17d79},
+    {"muse", "Default pet", NULL, 0},
 };
 static int character;
 static bool loaded;
@@ -90,6 +87,14 @@ static int video_frame(float seconds, int count)
 {
     return (int)(fmodf(seconds, count/15.0f) * 15 + 0.0001f) % count;
 }
+
+/* Oyster thinks by printing his portrait: play the 28-frame printout, hold
+ * the finished smile for 0.6 s, then print again. */
+static int oyster_print_frame(float seconds)
+{
+    int frame = (int)(fmodf(seconds, OYSTER_PRINTOUT_COUNT/15.0f + 0.6f) * 15 + 0.0001f);
+    return frame < OYSTER_PRINTOUT_COUNT ? frame : OYSTER_PRINTOUT_COUNT - 1;
+}
 static uint16_t rgb565(uint32_t c)
 {
     return (uint16_t)(((c >> 8) & 0xf800) | ((c >> 5) & 0x07e0) | ((c >> 3) & 31));
@@ -133,7 +138,6 @@ void muse_pixel_render(const muse_pose_t *p)
         return;
     }
     float t = fmaxf(0, p->t), mt = fmaxf(0, p->mode_t);
-    float level = clamp01(p->level);
     bool happy = p->happy > 0 && p->mode != MUSE_MODE_OFF && p->mode != MUSE_MODE_ERROR;
     if (t < last_t) was_happy = false;
     if (happy && !was_happy) pet_started = t;
@@ -143,23 +147,24 @@ void muse_pixel_render(const muse_pose_t *p)
     float light = 1;
     switch (p->mode) {
     case MUSE_MODE_BOOT:
-        frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : selected == 1 ? CELERY_MAN_IDLE_FIRST : 15;
+        frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : selected == 1 ? CELERY_MAN_IDLE_FIRST : OYSTER_FRONT_FIRST + 7;
         dy = (int)(12 * (1 - clamp01(mt / 0.8f)));
         light = clamp01(mt / 0.6f);
         break;
     case MUSE_MODE_IDLE:
         frame = selected == 0 ? TAYNE_IDLE_FIRST + video_frame(mt, TAYNE_IDLE_COUNT) :
             selected == 1 ? CELERY_MAN_IDLE_FIRST + video_frame(mt, CELERY_MAN_IDLE_COUNT) :
-            (int)(fmodf(t, characters[selected].period) * 8 / characters[selected].period) % 8;
+            OYSTER_IDLE_FIRST + video_frame(mt, OYSTER_IDLE_COUNT);
         break;
     case MUSE_MODE_LISTENING:
         frame = selected == 0 ? TAYNE_LISTENING_FIRST + video_frame(mt, TAYNE_LISTENING_COUNT) :
             selected == 1 ? CELERY_MAN_SHUFFLE_FIRST + video_frame(mt, CELERY_MAN_SHUFFLE_COUNT) :
-            level > 0.35f ? 13 : 12;
+            OYSTER_LISTENING_FIRST + video_frame(mt, OYSTER_LISTENING_COUNT);
         break;
     case MUSE_MODE_THINKING:
         frame = selected == 0 ? TAYNE_THINKING_FIRST + video_frame(mt, TAYNE_THINKING_COUNT) :
-            selected == 1 ? CELERY_MAN_IDLE_FIRST + video_frame(mt, CELERY_MAN_IDLE_COUNT) : 15;
+            selected == 1 ? CELERY_MAN_IDLE_FIRST + video_frame(mt, CELERY_MAN_IDLE_COUNT) :
+            OYSTER_PRINTOUT_FIRST + oyster_print_frame(mt);
         break;
     case MUSE_MODE_SPEAKING:
         if (selected == 0) {
@@ -169,26 +174,24 @@ void muse_pixel_render(const muse_pose_t *p)
         } else if (selected == 1) {
             frame = CELERY_MAN_SHUFFLE_FIRST + video_frame(mt, CELERY_MAN_SHUFFLE_COUNT);
         } else {
-            frame = level > 0.13f ? 14 : 15;
-            dy = level > 0.7f ? -1 : 0;
+            frame = OYSTER_FRONT_FIRST + video_frame(mt, OYSTER_FRONT_COUNT);
         }
         break;
     case MUSE_MODE_ERROR:
-        frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : selected == 1 ? CELERY_MAN_IDLE_FIRST : 15;
+        frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : selected == 1 ? CELERY_MAN_IDLE_FIRST : OYSTER_FRONT_FIRST + 7;
         light = 0.65f;
         break;
     case MUSE_MODE_OFF:
-        frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : selected == 1 ? CELERY_MAN_IDLE_FIRST : 8;
+        frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : selected == 1 ? CELERY_MAN_IDLE_FIRST : OYSTER_FRONT_FIRST + 7;
         light = 1 - clamp01(mt / 1.2f);
         dy = (int)(clamp01(mt / 1.2f) * 5);
         break;
-    default: frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : selected == 1 ? CELERY_MAN_IDLE_FIRST : 15; break;
+    default: frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : selected == 1 ? CELERY_MAN_IDLE_FIRST : OYSTER_FRONT_FIRST + 7; break;
     }
     if (happy) {
-        int step = (int)(fmodf(fmaxf(0, t-pet_started), 1.6f) * 5);
         frame = selected == 0 ? TAYNE_HAPPY_FIRST + video_frame(fmaxf(0, t-pet_started), TAYNE_HAPPY_COUNT) :
             selected == 1 ? CELERY_MAN_HAPPY_FIRST + video_frame(fmaxf(0, t-pet_started), CELERY_MAN_HAPPY_COUNT) :
-            characters[selected].happy[step < 8 ? step : 7];
+            OYSTER_FRONT_FIRST + video_frame(fmaxf(0, t-pet_started), OYSTER_FRONT_COUNT);
     }
     memset(pixels, 0, sizeof(pixels));
     for (int y = 0; y < MUSE_PX_H; y++) {
@@ -204,13 +207,13 @@ void muse_pixel_render(const muse_pose_t *p)
         int phase = (int)(fmodf(mt, 1.2f) / 0.4f);
         for (int i = 0; i < 3; i++) {
             uint16_t c = i == phase ? accent : dim(accent, 0.25f);
-            int x=selected<=1 ? 26+i*5 : 46+i*4;
-            int y=selected<=1 ? 62 : 12;
+            int x=26+i*5;
+            int y=62;
             dot(x, y, c); dot(x, y+1, c);
         }
     }
     if (p->mode == MUSE_MODE_ERROR) {
-        int x=selected<=1 ? 59 : 51;
+        int x=59;
         for (int y=12; y<17; y++) dot(x, y, accent);
         dot(x, 19, accent);
     }

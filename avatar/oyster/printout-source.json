@@ -1,0 +1,21 @@
+{
+  "source": "https://www.youtube.com/watch?v=a8K6QUPmv8Q",
+  "start": 44.55,
+  "frames": 28,
+  "fps": 15,
+  "crop": [
+    470,
+    80,
+    1040,
+    1000
+  ],
+  "size": [
+    60,
+    58
+  ],
+  "pos": [
+    2,
+    3
+  ],
+  "processing": "Consecutive original frames. Track the upper paper edge to remove the rear tray and room; retain the original paper, portrait, and printer lip. RGB565 with one shared GIF palette. Original timing, no generated poses."
+}

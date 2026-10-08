@@ -1,0 +1,10 @@
+{
+  "source": "https://www.youtube.com/watch?v=a8K6QUPmv8Q",
+  "fps": 15,
+  "clips": [
+    {"name":"headbang", "start":40.0, "frames":8, "crop":[1040,220,550,700], "size":[46,58], "pos":[9,3], "background":"pastel"},
+    {"name":"arms-back", "start":41.0, "frames":10, "crop":[1040,220,550,700], "size":[46,58], "pos":[9,3], "background":"pastel"},
+    {"name":"greeting", "start":39.03, "frames":8, "crop":[288,246,670,456], "size":[60,41], "pos":[2,11], "background":"pink"}
+  ],
+  "processing":"Consecutive original video frames at 15 fps, RGB565, shared GIF palette without dithering. No generated or reversed poses."
+}

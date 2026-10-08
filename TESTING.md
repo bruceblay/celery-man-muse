@@ -4,18 +4,18 @@ Checked on 2026-10-08 with ESP-IDF v6.0.1 and Muse SDK revision `1b56662588c0ea0
 
 ## Firmware builds
 
-The six-board build sweep below was completed before the Celery Man video update. The new update has been checked on StickS3; the other profiles have not been rebuilt for this artwork revision.
+All six profiles were rebuilt on 2026-10-08 with the Oyster video update, so every board carries the same animations. These builds used the development SDK checkout, which also has unrelated voice-session edits.
 
-Each profile in that earlier sweep was built in a separate, clean SDK checkout. These builds contain the published pack and integration patch, without the unrelated voice-session edits in the original development checkout.
+| Profile | Result | App partition free | Physical device |
+| --- | --- | --- | --- |
+| StickS3 | Passed | 5% | Tested |
+| StickC Plus2 | Passed | 6% | Not tested |
+| AIPI Lite | Passed | 8% | Not tested |
+| SenseCAP Watcher | Passed | 6% | Not tested |
+| Waveshare S3 1.75C | Passed | 8% | Not tested |
+| Waveshare C6 1.8 | Passed | 1% | Not tested |
 
-| Profile | Result | Physical device |
-| --- | --- | --- |
-| StickS3 | Passed | Tested |
-| StickC Plus2 | Passed | Not tested |
-| AIPI Lite | Passed | Not tested |
-| SenseCAP Watcher | Passed | Not tested |
-| Waveshare S3 1.75C | Passed | Not tested |
-| Waveshare C6 1.8 | Passed | Not tested |
+The Waveshare C6 has about 60 KiB of app space left. More frames for any character will likely need smaller sprites or a larger partition on that board.
 
 A successful build does not verify touch input, audio, power use, or frame rate on that board. Touchscreen character selection still needs physical-device testing.
 
@@ -24,7 +24,8 @@ A successful build does not verify touch input, audio, power use, or frame rate 
 - Four avatars, seven Muse modes, and fourteen output sizes under AddressSanitizer and UBSan.
 - Complete custom-character animation cycles, including Tayne's 1.6-second video loops. Every idle, listening, and thinking frame must match its packed source frame, in order, at exact 15 fps boundaries.
 - Tayne's speech sequence follows its source frames even with zero or low audio-level input, restarts on re-entry to speaking mode, and returns to idle when that mode ends. Microphone levels do not interrupt the listening dance; thinking dots remain below the boots.
-- Tayne and Oyster match the prior renderer across 1,680 sampled poses.
+- Tayne matches the prior renderer across 1,680 sampled poses.
+- Oyster's idle, listening, speaking, and thinking loops follow the packed source frames, including the printout's held smile, and happy returns to idle.
 - Celery Man’s three video loops follow the approved source frames across idle, listening, thinking, speaking, and happy. Checks cover repeated loops, zero audio level, state re-entry, and return from happy to idle.
 - Partial display strips match full-frame output; buffer guards remain intact.
 - Default pet output matches the original SDK renderer, including after switching from each dancer.
@@ -47,6 +48,8 @@ The earlier Tayne video update was tested on the attached StickS3. Flashing pres
 Tayne's video update was flashed with written-data hash verification. The boot log loaded Tayne and reached Muse startup without a panic or reboot loop during the check. The board reported its pairing intact and its Muse link online. It continued responding after console-driven listening, thinking, speaking, happy, and idle states, and was left idle. Physical animation appearance and timing, and speech driven by real audio, still need visual and listening checks.
 
 Celery Man’s video update was flashed on 2026-10-08 with written-data hash verification. The app uses `0x361000` bytes of the `0x3e0000`-byte partition (13% free). The board booted with Celery Man selected and reached Muse startup without a panic, brownout, or reboot loop during the 12-second boot check. Device configuration and local voice-session fixes were preserved. The board responded after listening, thinking, speaking, happy, and idle commands, and was left idle. Physical animation appearance and real-audio behavior still need a user check.
+
+Oyster's video update was flashed on 2026-10-08 with written-data hash verification. The app uses `0x3b1000` bytes of the `0x3e0000`-byte partition (5% free). Oyster's animations were reviewed visually on the device.
 
 ## Known issues
 

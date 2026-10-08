@@ -49,6 +49,26 @@ For a trimmed source, pass `--source-start SECONDS` to the extractor. The three 
 
 ## Oyster
 
-Oyster's sixteen-frame [source sheet](avatar/oyster/source.png) is a generated reinterpretation, made with OpenAI's built-in image generator using the costume at roughly 0:41–0:46 as reference. The [generation prompt](avatar/oyster/imagegen-prompt.txt) is included. The sheet is packed as RGB565 in `sprites.h`; no image-generation service is needed to build or run the firmware.
+Oyster uses four consecutive video excerpts from the same sketch:
+
+| Animation | Video segment | Samples | Sprite sheet |
+| --- | --- | --- | --- |
+| Headbang: idle | 0:40.00–0:40.53 | 8 | [video-headbang.png](avatar/oyster/video-headbang.png) |
+| Arms back: listening | 0:41.00–0:41.67 | 10 | [video-arms-back.png](avatar/oyster/video-arms-back.png) |
+| Greeting: speaking and happy | 0:39.03–0:39.57 | 8 | [video-greeting.png](avatar/oyster/video-greeting.png) |
+| Printout: thinking | 0:44.55–0:46.42 | 28 | [video-printout.png](avatar/oyster/video-printout.png) |
+
+The loops run at 15 fps in source order. Thinking plays the whole printout, holds the finished smile for 0.6 seconds, then prints again. The printout extractor tracks the upper paper edge to remove the rear tray and room, keeping the paper, portrait, and printer lip. GIF previews use a shared palette without dithering.
+
+[source-clips.json](avatar/oyster/source-clips.json) and [printout-source.json](avatar/oyster/printout-source.json) record the extraction settings. With FFmpeg, Pillow, NumPy, and a local 1920×1080 copy of the video:
+
+```sh
+python3 avatar/oyster/extract_video.py /path/to/video.mp4
+python3 avatar/oyster/extract_print.py /path/to/video.mp4
+python3 avatar/oyster/pack_sprites.py
+python3 avatar/tayne/export_preview.py --character oyster
+```
+
+The four sheets pack into fifty-four RGB565 frames. The earlier generated [source sheet](avatar/oyster/source.png) and [prompt](avatar/oyster/imagegen-prompt.txt) remain as history; the firmware uses the video sheets.
 
 The Apache license covers the code, not the source-video images or third-party character, likeness, and trademark rights. This is an unofficial fan project with no endorsement by the sketch's creators or rights holders. See [NOTICE](NOTICE).

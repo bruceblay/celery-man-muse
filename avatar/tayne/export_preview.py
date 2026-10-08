@@ -48,12 +48,14 @@ with tempfile.TemporaryDirectory() as td:
     for name, mode in modes.items():
         frames = []
         display_frames = []
-        video_dance = args.character in ('tayne', 'celery-man') and name in ('idle', 'happy')
-        conversation = args.character in ('tayne', 'celery-man') and name in ('speaking', 'listening', 'thinking')
+        video_dance = name in ('idle', 'happy')
+        conversation = name in ('speaking', 'listening', 'thinking')
         interval = 1/15 if video_dance or conversation else 0.08
         n = 24 if video_dance else (24 if name == "speaking" else 12 if name == "listening" else 90) if conversation else 40 if name == "happy" else [20,30,20][names.index(args.character)] if name == "idle" else 30
         if args.character == 'celery-man' and conversation:
             n = 24 if name != 'thinking' else 72
+        if args.character == 'oyster':
+            n = {'idle':8, 'listening':10, 'speaking':8, 'thinking':74, 'happy':24}.get(name,n)
         export_gif = name in ('idle', 'happy') or conversation
         for i in range(n):
             t = i * interval
@@ -79,7 +81,7 @@ with tempfile.TemporaryDirectory() as td:
         if export_gif:
             # GIF durations are multiples of 10 ms; distribute rounding error.
             durations = [(round((i+1)*interval*100)-round(i*interval*100))*10 for i in range(n)]
-            if args.character == 'celery-man':
+            if args.character in ('celery-man', 'oyster'):
                 palette = atlas.quantize(colors=256, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
                 display_frames = [f.quantize(palette=palette, dither=Image.Dither.NONE) for f in display_frames]
             display_frames[0].save(dest/(name+'.gif'),save_all=True,append_images=display_frames[1:],duration=durations,loop=0)

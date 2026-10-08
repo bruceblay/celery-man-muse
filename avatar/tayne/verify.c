@@ -4,6 +4,7 @@
 #include "../muse_default.h"
 #include "sprites.h"
 #include "../celery-man/sprites.h"
+#include "../oyster/sprites.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -168,6 +169,34 @@ int main(void)
         muse_pixel_render(&p);
         muse_pixel_scale(full,64,0,63,0,63);
         assert(memcmp(full,celery_man_sprites[CELERY_MAN_IDLE_FIRST],4096*2)==0);
+    }
+    /* Oyster uses each source frame, including the ten-frame sheet whose
+     * final grid row has padding. Quiet audio must not freeze his greeting. */
+    assert(muse_character_select(2));
+    for (int entry=0; entry<2; entry++) {
+        for (int mode=MUSE_MODE_IDLE; mode<=MUSE_MODE_SPEAKING; mode++) {
+            for (int tick=0; tick<72; tick++) {
+                int frame=mode==MUSE_MODE_LISTENING ? OYSTER_LISTENING_FIRST+tick%OYSTER_LISTENING_COUNT :
+                          mode==MUSE_MODE_SPEAKING ? OYSTER_FRONT_FIRST+tick%OYSTER_FRONT_COUNT :
+                          mode==MUSE_MODE_THINKING ? OYSTER_PRINTOUT_FIRST+(tick%37<28 ? tick%37 : 27) :
+                          OYSTER_IDLE_FIRST+tick%OYSTER_IDLE_COUNT;
+                muse_pose_t p={.mode=mode,.t=2000+entry*20+tick/15.0f,
+                              .mode_t=tick/15.0f,.level=entry ? 0.8f : 0};
+                muse_pixel_render(&p); muse_pixel_scale(full,64,0,63,0,63);
+                int rows=mode==MUSE_MODE_THINKING ? 62 : 64;
+                assert(memcmp(full,oyster_sprites[frame],64*rows*2)==0);
+            }
+        }
+    }
+    /* Happy waves the greeting, then returns to the headbang. */
+    {
+        muse_pose_t p={.mode=MUSE_MODE_IDLE,.t=3000,.mode_t=0};
+        muse_pixel_render(&p);
+        p.happy=1; p.t+=0.5f; p.mode_t=0.5f;
+        muse_pixel_render(&p);
+        p.happy=0; p.t+=2; p.mode_t=0;
+        muse_pixel_render(&p); muse_pixel_scale(full,64,0,63,0,63);
+        assert(memcmp(full,oyster_sprites[OYSTER_IDLE_FIRST],4096*2)==0);
     }
     /* Return to the default repeatedly after rendering each custom character. */
     muse_pixel_set_size(64);

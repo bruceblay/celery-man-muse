@@ -2,13 +2,15 @@
 
 ## How it fits into Muse
 
-`avatar/muse_pixel.c` implements Muse's existing render interface. Tayne has eighty-two 64×64 RGB565 frames; Celery Man has seventy-two and Oyster has sixteen. Together they use 1,360 KiB of flash and share one 8 KiB render buffer. The default pet uses the SDK's original renderer and its own buffers.
+`avatar/muse_pixel.c` implements Muse's existing render interface. Tayne has eighty-two 64×64 RGB565 frames; Celery Man has seventy-two and Oyster has fifty-four. Together they use 1,664 KiB of flash and share one 8 KiB render buffer. The default pet uses the SDK's original renderer and its own buffers.
 
 Tayne's idle and happy dances each use twenty-four consecutive video samples at 15 fps, for 1.6-second loops. Frame order and timing follow the sketch. Listening uses a twelve-frame arm swing; thinking uses ten frames of raised-arm kicks. Speaking uses a filmed close-up. [ART.md](ART.md) records the source timestamps and extraction recipe.
 
 Speaking loops the twelve-frame greeting at 15 fps while Muse is in speaking mode. It uses time in that mode rather than the audio meter, which can be zero or stale. It returns to the normal dance when Muse leaves speaking mode. Thinking dots sit below the dancer. Boot, error, and off reuse the neutral portrait.
 
 Celery Man uses three twenty-four-frame video loops at 15 fps. Hip sway serves idle and thinking, raised-fist shuffle serves listening and speaking, and 4d3d3 serves happy. Thinking dots sit below his feet. Speech keeps moving at zero audio level. Boot, error, and off reuse the first hip-sway frame.
+
+Oyster uses four video loops at 15 fps. Headbang serves idle, arms back serves listening, and the greeting serves speaking and happy. Thinking plays the 28-frame printout, holds the final smile for 0.6 seconds, and repeats. Boot, error, and off reuse a greeting frame.
 
 The SDK chooses the square avatar area for each screen. The renderer scales into that area without stretching the character, and writes display strips rather than allocating a full-screen image. Larger screens keep the same pixel-art style. See [DEVICES.md](DEVICES.md) for native sizes.
 
