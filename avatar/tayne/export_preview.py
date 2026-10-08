@@ -49,11 +49,15 @@ with tempfile.TemporaryDirectory() as td:
         frames = []
         display_frames = []
         video_dance = args.character == 'tayne' and name in ('idle', 'happy')
-        interval = 1/15 if video_dance else 0.08
-        n = 24 if video_dance else 40 if name == "happy" else [20,30,20][names.index(args.character)] if name == "idle" else 30
+        conversation = args.character == 'tayne' and name in ('speaking', 'listening', 'thinking')
+        interval = 1/15 if video_dance or conversation else 0.08
+        n = 24 if video_dance else (48 if name == "speaking" else 12 if name == "listening" else 90) if conversation else 40 if name == "happy" else [20,30,20][names.index(args.character)] if name == "idle" else 30
+        export_gif = name in ('idle', 'happy') or conversation
         for i in range(n):
             t = i * interval
             level = max(0, abs(math.sin(t*6.3)) * (0.55+0.45*math.sin(t*1.7+1)))
+            if conversation and name == 'speaking':
+                level = max(0.18, level) if 0.35 <= t%3.2 < 2.2 else 0
             happy = max(0, min(1, (2.0-t)/0.4)) if name == "happy" and t >= 0.4 else 0
             if video_dance and name == 'happy':
                 happy = 1  # Show the complete source sequence without idle lead-in/recovery.
@@ -62,7 +66,7 @@ with tempfile.TemporaryDirectory() as td:
             lib.muse_pixel_set_size(64)
             lib.muse_pixel_scale(buf, 64, 0, 63, 0, 63)
             frames.append(rgb_image(buf, 64))
-            if name in ('idle', 'happy'):
+            if export_gif:
                 lib.muse_pixel_set_size(args.size)
                 lib.muse_pixel_scale(display_buf, args.size, 0, args.size-1, 0, args.size-1)
                 display_frames.append(rgb_image(display_buf, args.size))
@@ -72,7 +76,7 @@ with tempfile.TemporaryDirectory() as td:
         encoded = io.BytesIO()
         atlas.save(encoded, format="PNG", optimize=True)
         data[name] = {"frames": n, "frame_ms": interval*1000, "src": "data:image/png;base64,"+base64.b64encode(encoded.getvalue()).decode()}
-        if name in ('idle', 'happy'):
+        if export_gif:
             # GIF durations are multiples of 10 ms; distribute rounding error.
             durations = [(round((i+1)*interval*100)-round(i*interval*100))*10 for i in range(n)]
             display_frames[0].save(dest/(name+'.gif'),save_all=True,append_images=display_frames[1:],duration=durations,loop=0)

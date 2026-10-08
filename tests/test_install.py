@@ -56,7 +56,7 @@ class InstallTests(unittest.TestCase):
     def test_upgrade_previous_artwork(self):
         install(self.sdk)
         avatar = self.sdk/'esp32/components/muse/avatar'
-        for revision in ('362e373', '5825a73'):
+        for revision in ('362e373', '5825a73', '33612ec'):
             with self.subTest(revision=revision):
                 for name in RUNTIME:
                     previous = subprocess.check_output(['git', '-C', str(ROOT), 'show',
@@ -71,7 +71,7 @@ class InstallTests(unittest.TestCase):
         install(self.sdk)
         source = self.sdk/'esp32/components/muse/avatar/muse_pixel.c'
         source.write_bytes(subprocess.check_output(['git', '-C', str(ROOT), 'show',
-            '5825a73:avatar/muse_pixel.c']) + b'\n/* Local modification */\n')
+            '33612ec:avatar/muse_pixel.c']) + b'\n/* Local modification */\n')
         before = source.read_bytes()
         with self.assertRaisesRegex(RuntimeError, 'differs'):
             install(self.sdk)

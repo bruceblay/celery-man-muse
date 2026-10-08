@@ -69,7 +69,7 @@ int main(void)
                     muse_pixel_render(&p);
                     muse_pixel_scale(full, 64, 0, 63, 0, 63);
                     if (c==0 && mode==MUSE_MODE_IDLE && !happy) {
-                        assert(memcmp(full, tayne_sprites[16+tick%24], 4096*sizeof(uint16_t))==0);
+                        assert(memcmp(full, tayne_sprites[TAYNE_IDLE_FIRST+tick%24], 4096*sizeof(uint16_t))==0);
                         unsigned hash=0;
                         for (int i=0; i<4096; i++) hash=hash*33u+full[i];
                         if (tick<24) dance_hashes[tick]=hash;
@@ -86,6 +86,47 @@ int main(void)
         if (!seen) unique++;
     }
     assert(unique>16);
+    /* Microphone levels do not interrupt the filmed listening dance. */
+    assert(muse_character_select(0));
+    for (int tick=0; tick<48; tick++) {
+        muse_pose_t p={.mode=MUSE_MODE_LISTENING, .t=tick/15.0f, .mode_t=tick/15.0f,
+                      .level=(tick%2) ? 1 : 0};
+        muse_pixel_render(&p);
+        muse_pixel_scale(full, 64, 0, 63, 0, 63);
+        assert(memcmp(full, tayne_sprites[TAYNE_LISTENING_FIRST+tick%TAYNE_LISTENING_COUNT], 4096*2)==0);
+    }
+    /* Continuous speech follows the filmed sequence without bobbing or morphing. */
+    for (int tick=0; tick<48; tick++) {
+        muse_pose_t p={.mode=MUSE_MODE_SPEAKING, .t=tick/15.0f, .mode_t=tick/15.0f, .level=0.8f};
+        muse_pixel_render(&p);
+        muse_pixel_scale(full, 64, 0, 63, 0, 63);
+        assert(memcmp(full, tayne_sprites[TAYNE_FRONT_FIRST+tick%TAYNE_FRONT_COUNT], 4096*2)==0);
+    }
+    muse_pose_t quiet={.mode=MUSE_MODE_SPEAKING, .t=4, .mode_t=4, .level=0};
+    muse_pixel_render(&quiet);
+    muse_pixel_scale(full, 64, 0, 63, 0, 63);
+    assert(memcmp(full, tayne_sprites[TAYNE_FRONT_FIRST+9], 4096*2)==0);
+    /* A brief audio gap keeps the phrase going; a real pause closes the mouth. */
+    quiet.t=5; quiet.level=0.8f;
+    muse_pixel_render(&quiet);
+    quiet.t=5.1f; quiet.level=0;
+    muse_pixel_render(&quiet);
+    muse_pixel_scale(full, 64, 0, 63, 0, 63);
+    assert(memcmp(full, tayne_sprites[TAYNE_FRONT_FIRST+1], 4096*2)==0);
+    quiet.t=5.3f;
+    muse_pixel_render(&quiet);
+    muse_pixel_scale(full, 64, 0, 63, 0, 63);
+    assert(memcmp(full, tayne_sprites[TAYNE_FRONT_FIRST+9], 4096*2)==0);
+    /* Thinking follows the second filmed dance, with dots below his boots. */
+    for (int tick=0; tick<40; tick++) {
+        muse_pose_t p={.mode=MUSE_MODE_THINKING, .t=tick/15.0f, .mode_t=tick/15.0f};
+        muse_pixel_render(&p);
+        muse_pixel_scale(full, 64, 0, 63, 0, 63);
+        assert(memcmp(full, tayne_sprites[TAYNE_THINKING_FIRST+tick%TAYNE_THINKING_COUNT], 64*62*2)==0);
+        for (int x=0; x<64; x++) for (int y=62; y<64; y++) {
+            assert((full[y*64+x] != 0) == (x==26 || x==31 || x==36));
+        }
+    }
     /* Return to the default repeatedly after rendering each custom character. */
     muse_pixel_set_size(64);
     for (int i=0; i<3; i++) {

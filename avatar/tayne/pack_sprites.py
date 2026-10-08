@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
-"""Package original conversation poses and sampled video dances as RGB565."""
+"""Package Tayne's video portraits and approved dance sheets as RGB565."""
 from pathlib import Path
 import json
 from PIL import Image
 
 HERE = Path(__file__).resolve().parent
 frames = []
-for filename, columns, rows in (("source.png", 4, 4), ("video-idle.png", 8, 3), ("video-happy.png", 8, 3)):
+offsets = []
+for name, filename, columns, rows in (("FRONT", "video-front.png", 4, 3),
+                                     ("LISTENING", "video-listening.png", 4, 3),
+                                     ("THINKING", "video-thinking.png", 5, 2),
+                                     ("IDLE", "video-idle.png", 8, 3),
+                                     ("HAPPY", "video-happy.png", 8, 3)):
+    offsets.append((name, len(frames), columns*rows))
     source = Image.open(HERE / filename).convert("RGB")
     for i in range(columns * rows):
         x, y = i % columns, i // columns
@@ -16,8 +22,10 @@ for filename, columns, rows in (("source.png", 4, 4), ("video-idle.png", 8, 3), 
         frames.append([((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3)
                        for r, g, b in sprite.getdata()])
 with (HERE / "sprites.h").open("w") as out:
-    out.write("/* Packed from source.png, video-idle.png and video-happy.png. See ART.md for provenance. */\n")
-    out.write("static const uint16_t tayne_sprites[64][4096] = {\n")
+    out.write("/* Packed from video-*.png. Source timestamps and extraction: video-clips.json and ART.md. */\n")
+    for name, offset, count in offsets:
+        out.write(f"enum {{ TAYNE_{name}_FIRST = {offset}, TAYNE_{name}_COUNT = {count} }};\n")
+    out.write(f"static const uint16_t tayne_sprites[{len(frames)}][4096] = {{\n")
     for frame in frames:
         out.write("{\n")
         for j in range(0, len(frame), 32):
@@ -26,8 +34,8 @@ with (HERE / "sprites.h").open("w") as out:
     out.write("};\n")
 (HERE / "asset-info.json").write_text(json.dumps({
     "character": "Tayne", "reference": "https://www.youtube.com/watch?v=a8K6QUPmv8Q",
-    "generator": "Original poses: imagegen; dances: source-video frames via FFmpeg", "format": "RGB565", "frame_size": [64, 64],
-    "frames": 64, "flash_bytes": 64*64*64*2,
-    "provenance": "video-clips.json; original conversation art: imagegen-prompt.txt"
+    "generator": "Source-video frames via FFmpeg; recorded mattes via Pillow", "format": "RGB565", "frame_size": [64, 64],
+    "frames": len(frames), "flash_bytes": len(frames)*64*64*2,
+    "provenance": "video-clips.json"
 }, indent=2) + "\n")
-print("Packed 64 frames; 524288 bytes of read-only sprite data.")
+print(f"Packed {len(frames)} frames; {len(frames)*8192} bytes of read-only sprite data.")

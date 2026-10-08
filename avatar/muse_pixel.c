@@ -14,7 +14,6 @@
 #include "esp_log.h"
 #endif
 
-static const int hat_wobble[] = {8,9,8,10,8,11,0,11};
 static const int celebration[] = {8,9,10,9,10,11,8,11};
 static const struct {
     const char *id, *name;
@@ -23,7 +22,7 @@ static const struct {
     float period;
     uint32_t accent;
 } characters[] = {
-    {"tayne", "Tayne", tayne_sprites, hat_wobble, 1.6f, 0xf3c971},
+    {"tayne", "Tayne", tayne_sprites, NULL, 1.6f, 0xf3c971},
     {"celery-man", "Celery Man", celery_man_sprites, celebration, 2.4f, 0xb6d9e9},
     {"oyster", "Oyster", oyster_sprites, celebration, 1.6f, 0xf17d79},
     {"muse", "Default pet", NULL, NULL, 0, 0},
@@ -40,6 +39,8 @@ static int size = MUSE_PX_W * 2;
 static float pet_started;
 static float last_t;
 static bool was_happy;
+static bool tayne_talking;
+static float speech_started, speech_last_voice;
 
 int muse_character_count(void) { return (int)(sizeof(characters)/sizeof(characters[0])); }
 const char *muse_character_name(int index)
@@ -81,15 +82,16 @@ bool muse_character_select(int index)
 #endif
     character = index;
     was_happy = false;
+    tayne_talking = false;
     return true;
 }
 
 static float clamp01(float v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
-/* Two consecutive 24-frame video samples, at their original 15 fps cadence.
+/* Consecutive source-video samples at their original 15 fps cadence.
  * The epsilon keeps exact preview frame boundaries stable in float32. */
-static int tayne_video_frame(float seconds)
+static int tayne_video_frame(float seconds, int count)
 {
-    return (int)(fmodf(seconds, 1.6f) * 15 + 0.0001f) % 24;
+    return (int)(fmodf(seconds, count/15.0f) * 15 + 0.0001f) % count;
 }
 static uint16_t rgb565(uint32_t c)
 {
@@ -136,7 +138,8 @@ void muse_pixel_render(const muse_pose_t *p)
     float t = fmaxf(0, p->t), mt = fmaxf(0, p->mode_t);
     float level = clamp01(p->level);
     bool happy = p->happy > 0 && p->mode != MUSE_MODE_OFF && p->mode != MUSE_MODE_ERROR;
-    if (t < last_t) was_happy = false;
+    if (t < last_t) { was_happy = false; tayne_talking = false; }
+    if (p->mode != MUSE_MODE_SPEAKING) tayne_talking = false;
     if (happy && !was_happy) pet_started = t;
     was_happy = happy;
     last_t = t;
@@ -144,38 +147,47 @@ void muse_pixel_render(const muse_pose_t *p)
     float light = 1;
     switch (p->mode) {
     case MUSE_MODE_BOOT:
-        frame = 15;
+        frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : 15;
         dy = (int)(12 * (1 - clamp01(mt / 0.8f)));
         light = clamp01(mt / 0.6f);
         break;
     case MUSE_MODE_IDLE:
-        frame = selected == 0 ? 16 + tayne_video_frame(mt) :
+        frame = selected == 0 ? TAYNE_IDLE_FIRST + tayne_video_frame(mt, TAYNE_IDLE_COUNT) :
             (int)(fmodf(t, characters[selected].period) * 8 / characters[selected].period) % 8;
         break;
     case MUSE_MODE_LISTENING:
-        frame = level > 0.35f ? 13 : 12;
+        frame = selected == 0 ? TAYNE_LISTENING_FIRST + tayne_video_frame(mt, TAYNE_LISTENING_COUNT) :
+            level > 0.35f ? 13 : 12;
         break;
     case MUSE_MODE_THINKING:
-        frame = 15;
+        frame = selected == 0 ? TAYNE_THINKING_FIRST + tayne_video_frame(mt, TAYNE_THINKING_COUNT) : 15;
         break;
     case MUSE_MODE_SPEAKING:
-        frame = level > 0.13f ? 14 : 15;
-        dy = level > 0.7f ? -1 : 0;
+        if (selected == 0) {
+            if (level >= 0.14f && !tayne_talking) { tayne_talking = true; speech_started = t; }
+            if (level >= 0.08f) speech_last_voice = t;
+            if (tayne_talking && level < 0.08f && t-speech_last_voice > 0.14f) tayne_talking = false;
+            frame = TAYNE_FRONT_FIRST + (tayne_talking ?
+                tayne_video_frame(fmaxf(0, t-speech_started), TAYNE_FRONT_COUNT) : 9);
+        } else {
+            frame = level > 0.13f ? 14 : 15;
+            dy = level > 0.7f ? -1 : 0;
+        }
         break;
     case MUSE_MODE_ERROR:
-        frame = 15;
+        frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : 15;
         light = 0.65f;
         break;
     case MUSE_MODE_OFF:
-        frame = 8;
+        frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : 8;
         light = 1 - clamp01(mt / 1.2f);
         dy = (int)(clamp01(mt / 1.2f) * 5);
         break;
-    default: frame = 15; break;
+    default: frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : 15; break;
     }
     if (happy) {
         int step = (int)(fmodf(fmaxf(0, t-pet_started), 1.6f) * 5);
-        frame = selected == 0 ? 40 + tayne_video_frame(fmaxf(0, t-pet_started)) :
+        frame = selected == 0 ? TAYNE_HAPPY_FIRST + tayne_video_frame(fmaxf(0, t-pet_started), TAYNE_HAPPY_COUNT) :
             characters[selected].happy[step < 8 ? step : 7];
     }
     memset(pixels, 0, sizeof(pixels));
@@ -192,12 +204,15 @@ void muse_pixel_render(const muse_pose_t *p)
         int phase = (int)(fmodf(mt, 1.2f) / 0.4f);
         for (int i = 0; i < 3; i++) {
             uint16_t c = i == phase ? accent : dim(accent, 0.25f);
-            dot(46+i*4, 12, c); dot(46+i*4, 13, c);
+            int x=selected==0 ? 26+i*5 : 46+i*4;
+            int y=selected==0 ? 62 : 12;
+            dot(x, y, c); dot(x, y+1, c);
         }
     }
     if (p->mode == MUSE_MODE_ERROR) {
-        for (int y=12; y<17; y++) dot(51, y, accent);
-        dot(51, 19, accent);
+        int x=selected==0 ? 59 : 51;
+        for (int y=12; y<17; y++) dot(x, y, accent);
+        dot(x, 19, accent);
     }
     if (happy) {
         float age = fmaxf(0, t - pet_started);

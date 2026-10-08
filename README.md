@@ -5,6 +5,7 @@ Your desk requires a little more Tayne.
 Tayne, Celery Man, and Oyster as animated companions for [Muse](https://github.com/facebookincubator/muse-gadget-sdk). They dance while idle and react while Muse listens and speaks.
 
 Tayne's dances use frames from the sketch, including the low bounce and Flarhgunnstow sequence.
+He swings his arms while listening, kicks with his arms raised while thinking, and switches to the sketch's close-up while speaking.
 
 | Tayne | Celery Man | Oyster |
 | :---: | :---: | :---: |

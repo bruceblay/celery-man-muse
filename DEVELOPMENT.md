@@ -2,9 +2,11 @@
 
 ## How it fits into Muse
 
-`avatar/muse_pixel.c` implements Muse's existing render interface. Tayne has sixty-four 64×64 RGB565 frames; Celery Man and Oyster have sixteen each. Together they use 768 KiB of flash and share one 8 KiB render buffer. The default pet uses the SDK's original renderer and its own buffers.
+`avatar/muse_pixel.c` implements Muse's existing render interface. Tayne has eighty-two 64×64 RGB565 frames; Celery Man and Oyster have sixteen each. Together they use 912 KiB of flash and share one 8 KiB render buffer. The default pet uses the SDK's original renderer and its own buffers.
 
-Tayne's idle and happy dances each use twenty-four consecutive video samples at 15 fps, for 1.6-second loops. Frame order and timing follow the sketch. Listening and speaking keep their original generated poses. [ART.md](ART.md) records the source timestamps and extraction recipe.
+Tayne's idle and happy dances each use twenty-four consecutive video samples at 15 fps, for 1.6-second loops. Frame order and timing follow the sketch. Listening uses a twelve-frame arm swing; thinking uses ten frames of raised-arm kicks. Speaking uses a filmed close-up. [ART.md](ART.md) records the source timestamps and extraction recipe.
+
+Speaking plays the twelve-frame greeting while voice activity is present, with separate start/stop thresholds and a 140 ms pause allowance to avoid chatter between syllables. It rests on a closed-mouth frame during silence; this is voice-activity animation, not phoneme lip sync. Thinking dots sit below the dancer. Boot, error, and off reuse the neutral portrait.
 
 The SDK chooses the square avatar area for each screen. The renderer scales into that area without stretching the character, and writes display strips rather than allocating a full-screen image. Larger screens keep the same pixel-art style. See [DEVICES.md](DEVICES.md) for native sizes.
 
@@ -51,6 +53,8 @@ python3 avatar/tayne/export_preview.py --character oyster --size 128 --output /t
 ```
 
 `--size` accepts 1–512 pixels and defaults to 320. State atlases stay at 64×64; GIFs use the requested output size. `--sdk` selects the SDK checkout. Preview audio levels are simulated.
+
+Tayne exports GIFs for speaking, listening, and thinking as well as the two dances. The speaking preview includes a quiet lead-in and a pause so the closed-mouth behavior is visible.
 
 ## Adding boards
 

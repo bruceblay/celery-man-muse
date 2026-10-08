@@ -18,7 +18,7 @@ not redistributed or relicensed in this repository.
 Character names, likenesses, and source-sketch rights belong to their
 respective owners. No endorsement is implied.
 
-Tayne's video-idle.png and video-happy.png, their packed pixels in sprites.h,
+Tayne's video-*.png sheets, their packed pixels in sprites.h,
 and the corresponding preview GIFs contain cropped, downsampled frames from
 "Dance Paul Rudd, Dance | Tim and Eric Awesome Show, Great Job! | adult swim":
 https://www.youtube.com/watch?v=a8K6QUPmv8Q

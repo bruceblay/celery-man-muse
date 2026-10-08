@@ -10,8 +10,226 @@
   "foreground_position": [14, 3],
   "background_key": "0xececec:0.16:0.04",
   "clips": [
-    {"name": "idle", "file": "video-idle.png", "start_seconds": 66.65, "crop_xywh": [908, 160, 540, 884], "description": "Low, wide-legged bounce"},
-    {"name": "happy", "file": "video-happy.png", "start_seconds": 74.4, "crop_xywh": [136, 144, 536, 888], "description": "High-knee Flarhgunnstow sequence, leftmost dancer"}
+    {
+      "name": "idle",
+      "file": "video-idle.png",
+      "start_seconds": 66.65,
+      "crop_xywh": [908, 160, 540, 884],
+      "description": "Low, wide-legged bounce"
+    },
+    {
+      "name": "happy",
+      "file": "video-happy.png",
+      "start_seconds": 74.4,
+      "crop_xywh": [136, 144, 536, 888],
+      "description": "High-knee Flarhgunnstow sequence, leftmost dancer"
+    },
+    {
+      "name": "front",
+      "file": "video-front.png",
+      "start_seconds": 56.5,
+      "crop_xywh": [976, 138, 530, 682],
+      "foreground_size": [44, 56],
+      "foreground_position": [10, 3],
+      "frames": 12,
+      "grid": [4, 3],
+      "preserve_highlights": true,
+      "description": "Frontal speech close-up; closed-mouth frame 9 supplies speech pauses"
+    },
+    {
+      "name": "listening",
+      "file": "video-listening.png",
+      "start_seconds": 62.03,
+      "crop_xywh": [210, 145, 560, 850],
+      "foreground_size": [38, 58],
+      "foreground_position": [13, 3],
+      "frames": 12,
+      "grid": [4, 3],
+      "window_matte": {
+        "annotation_size": [224, 340],
+        "edge_x": 162,
+        "foot_y": [324, 324, 324, 324, 324, 324, 327, 327, 327, 327, 327, 327],
+        "arm_polygons": [
+          [
+            [158, 75],
+            [168, 78],
+            [177, 87],
+            [176, 96],
+            [167, 98],
+            [158, 96]
+          ],
+          [
+            [158, 69],
+            [192, 69],
+            [201, 72],
+            [202, 81],
+            [193, 84],
+            [158, 87]
+          ],
+          [
+            [158, 83],
+            [175, 86],
+            [180, 93],
+            [176, 101],
+            [167, 102],
+            [158, 99]
+          ],
+          [],
+          [],
+          [
+            [158, 88],
+            [169, 89],
+            [173, 96],
+            [171, 103],
+            [158, 110]
+          ],
+          [
+            [158, 77],
+            [180, 80],
+            [193, 91],
+            [190, 101],
+            [182, 104],
+            [158, 101]
+          ],
+          [
+            [158, 69],
+            [197, 70],
+            [205, 75],
+            [204, 85],
+            [195, 88],
+            [158, 88]
+          ],
+          [
+            [158, 87],
+            [177, 90],
+            [179, 99],
+            [172, 106],
+            [158, 107]
+          ],
+          [],
+          [],
+          [
+            [158, 91],
+            [169, 91],
+            [174, 99],
+            [170, 108],
+            [158, 111]
+          ]
+        ]
+      },
+      "description": "Sideways arm swing from the two mirrored Tayne windows; left dancer"
+    },
+    {
+      "name": "thinking",
+      "file": "video-thinking.png",
+      "start_seconds": 72.8,
+      "crop_xywh": [285, 135, 495, 690],
+      "foreground_size": [42, 58],
+      "foreground_position": [11, 3],
+      "frames": 10,
+      "grid": [5, 2],
+      "key_filter": "colorkey=0x00abc3:0.18:0.04",
+      "floor_matte": {
+        "annotation_size": [198, 276],
+        "edge_y": 254,
+        "foot_polygons": [
+          [
+            [148, 249],
+            [171, 243],
+            [185, 241],
+            [183, 250],
+            [168, 270],
+            [157, 275],
+            [150, 267]
+          ],
+          [
+            [146, 249],
+            [171, 244],
+            [189, 244],
+            [186, 255],
+            [168, 273],
+            [155, 275]
+          ],
+          [
+            [75, 243],
+            [88, 243],
+            [89, 260],
+            [77, 263]
+          ],
+          [
+            [75, 243],
+            [85, 243],
+            [84, 262],
+            [77, 261]
+          ],
+          [
+            [67, 240],
+            [85, 243],
+            [87, 264],
+            [72, 268],
+            [66, 260],
+            [121, 248],
+            [133, 249],
+            [135, 269],
+            [125, 270]
+          ],
+          [
+            [19, 241],
+            [32, 247],
+            [50, 255],
+            [62, 254],
+            [54, 270],
+            [42, 275],
+            [31, 269],
+            [20, 256],
+            [105, 246],
+            [118, 246],
+            [118, 270],
+            [108, 270]
+          ],
+          [
+            [17, 250],
+            [32, 257],
+            [49, 261],
+            [54, 269],
+            [39, 276],
+            [27, 272],
+            [18, 261],
+            [111, 250],
+            [123, 250],
+            [123, 270],
+            [113, 270]
+          ],
+          [
+            [23, 246],
+            [39, 251],
+            [50, 262],
+            [64, 266],
+            [57, 275],
+            [43, 275],
+            [31, 267],
+            [97, 249],
+            [110, 249],
+            [110, 273],
+            [102, 273]
+          ],
+          [
+            [94, 245],
+            [106, 245],
+            [107, 270],
+            [98, 270]
+          ],
+          [
+            [119, 245],
+            [130, 245],
+            [126, 267],
+            [115, 269],
+            [113, 262]
+          ]
+        ]
+      },
+      "description": "Raised-arm kicks on the turquoise desktop, matching the sticker pose"
+    }
   ],
-  "processing": "Consecutive video samples in original order at original speed. Crop window chrome, key the pale background, scale and place on black. No generated poses, mirroring, interpolation or choreography. Original window-edge clipping is retained."
+  "processing": "Consecutive source-video samples at 15 fps; no generated poses, mirrored additions, or facial morphing. Original idle and happy pixels are unchanged. Speaking follows voice activity and rests on a filmed closed-mouth frame. New dances use recorded window-edge mattes to retain hands and boots."
 }
