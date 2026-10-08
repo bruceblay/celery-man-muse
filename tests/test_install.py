@@ -56,7 +56,7 @@ class InstallTests(unittest.TestCase):
     def test_upgrade_previous_artwork(self):
         install(self.sdk)
         avatar = self.sdk/'esp32/components/muse/avatar'
-        for revision in ('362e373', '5825a73', '33612ec', '76b5e7f'):
+        for revision in ('362e373', '5825a73', '33612ec', '76b5e7f', '17a575f'):
             with self.subTest(revision=revision):
                 for name in RUNTIME:
                     previous = subprocess.check_output(['git', '-C', str(ROOT), 'show',

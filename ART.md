@@ -25,15 +25,30 @@ python3 avatar/tayne/pack_sprites.py
 
 For an input trimmed to start at a known source timestamp, pass `--source-start SECONDS`. Use `--clip listening` to rebuild one sequence. The video and its audio are not included in this repository.
 
-## Generated poses
+## Celery Man
 
-The Celery Man and Oyster sheets were created with OpenAI's built-in image generator from costume references in the sketch. These are generated reinterpretations.
+Celery Man uses three consecutive video excerpts from the same sketch:
 
-| Character | Original sheet | Exact generation prompt | Costume reference |
+| Animation | Video segment | Samples | Sprite sheet |
 | --- | --- | --- | --- |
-| Celery Man | [source.png](avatar/celery-man/source.png) | [prompt](avatar/celery-man/imagegen-prompt.txt) | Around 0:24; gray suit, white shirt, dark tie |
-| Oyster | [source.png](avatar/oyster/source.png) | [prompt](avatar/oyster/imagegen-prompt.txt) | Around 0:41–0:46; red hoodie and beanie, black tee and trousers |
+| Hip sway: idle and thinking | 0:23.40–0:25.00 | 24 | [video-hip-sway.png](avatar/celery-man/video-hip-sway.png) |
+| Raised-fist shuffle: listening and speaking | 0:28.03–0:29.63 | 24 | [video-raised-fists.png](avatar/celery-man/video-raised-fists.png) |
+| 4d3d3: happy | 0:37.43–0:39.03 | 24 | [video-4d3d3.png](avatar/celery-man/video-4d3d3.png) |
 
-The original sheets contain sixteen frames each. All frames are packed as RGB565 in `sprites.h`; no image-generation service is needed to build or run the firmware. GIF previews come from the native renderer.
+The loops run at 15 fps, preserving source order and timing. A narrow background key retains the hand highlights. Recorded masks protect white fabric, including the two 4d3d3 frames where the shirt meets the pale background. Masks restore source pixels; they do not redraw the dancer. GIF previews use a shared palette without dithering.
+
+[source-clips.json](avatar/celery-man/source-clips.json) records the extraction settings. With FFmpeg, Pillow, and a local 1920×1080 copy of the video:
+
+```sh
+python3 avatar/celery-man/extract_video.py /path/to/video.mp4
+python3 avatar/celery-man/pack_sprites.py
+python3 avatar/tayne/export_preview.py --character celery-man
+```
+
+For a trimmed source, pass `--source-start SECONDS` to the extractor. The three sheets pack into seventy-two RGB565 frames. The earlier generated [source sheet](avatar/celery-man/source.png) and [prompt](avatar/celery-man/imagegen-prompt.txt) remain as history; the firmware uses the video sheets.
+
+## Oyster
+
+Oyster's sixteen-frame [source sheet](avatar/oyster/source.png) is a generated reinterpretation, made with OpenAI's built-in image generator using the costume at roughly 0:41–0:46 as reference. The [generation prompt](avatar/oyster/imagegen-prompt.txt) is included. The sheet is packed as RGB565 in `sprites.h`; no image-generation service is needed to build or run the firmware.
 
 The Apache license covers the code, not the source-video images or third-party character, likeness, and trademark rights. This is an unofficial fan project with no endorsement by the sketch's creators or rights holders. See [NOTICE](NOTICE).

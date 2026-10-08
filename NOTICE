@@ -18,9 +18,10 @@ not redistributed or relicensed in this repository.
 Character names, likenesses, and source-sketch rights belong to their
 respective owners. No endorsement is implied.
 
-Tayne's video-*.png sheets, their packed pixels in sprites.h,
+Tayne's and Celery Man's video-*.png sheets, their packed pixels in sprites.h,
 and the corresponding preview GIFs contain cropped, downsampled frames from
 "Dance Paul Rudd, Dance | Tim and Eric Awesome Show, Great Job! | adult swim":
 https://www.youtube.com/watch?v=a8K6QUPmv8Q
 Those source-video images are not covered by this project's Apache code license.
-Source timestamps and processing are recorded in avatar/tayne/video-clips.json.
+Source timestamps and processing are recorded in avatar/tayne/video-clips.json
+and avatar/celery-man/source-clips.json.

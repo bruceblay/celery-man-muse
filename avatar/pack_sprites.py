@@ -5,7 +5,7 @@ import argparse
 from PIL import Image
 
 ap=argparse.ArgumentParser(description=__doc__)
-ap.add_argument('character',choices=['celery-man','oyster'])
+ap.add_argument('character',choices=['oyster'])
 args=ap.parse_args()
 folder=Path(__file__).resolve().parent/args.character
 source=Image.open(folder/'source.png').convert('RGB')

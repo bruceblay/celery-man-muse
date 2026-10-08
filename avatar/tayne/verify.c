@@ -3,6 +3,7 @@
 #include "../characters.h"
 #include "../muse_default.h"
 #include "sprites.h"
+#include "../celery-man/sprites.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -131,6 +132,42 @@ int main(void)
         for (int x=0; x<64; x++) for (int y=62; y<64; y++) {
             assert((full[y*64+x] != 0) == (x==26 || x==31 || x==36));
         }
+    }
+    /* Celery Man uses the approved consecutive video frames in every active
+     * state, even at zero audio level and after re-entering a state. */
+    assert(muse_character_select(1));
+    for (int entry=0; entry<2; entry++) {
+        for (int mode=MUSE_MODE_IDLE; mode<=MUSE_MODE_SPEAKING; mode++) {
+            for (int tick=0; tick<72; tick++) {
+                muse_pose_t p={.mode=mode, .t=500+entry*20+tick/15.0f,
+                              .mode_t=tick/15.0f, .level=entry ? 0.8f : 0};
+                muse_pixel_render(&p);
+                muse_pixel_scale(full,64,0,63,0,63);
+                int first=(mode==MUSE_MODE_LISTENING || mode==MUSE_MODE_SPEAKING)
+                    ? CELERY_MAN_SHUFFLE_FIRST : CELERY_MAN_IDLE_FIRST;
+                int rows=mode==MUSE_MODE_THINKING ? 62 : 64;
+                assert(memcmp(full,celery_man_sprites[first+tick%24],64*rows*2)==0);
+            }
+        }
+    }
+    for (int entry=0; entry<2; entry++) {
+        muse_pose_t p={.mode=MUSE_MODE_IDLE,.t=1000+entry*10};
+        muse_pixel_render(&p);
+        for (int tick=0; tick<48; tick++) {
+            /* Sample inside each frame: uptime subtraction loses precision. */
+            p.t=1000+entry*10+(tick ? tick+0.25f : 0)/15.0f; p.mode_t=tick/15.0f; p.happy=1;
+            muse_pixel_render(&p);
+            muse_pixel_scale(full,64,0,63,0,63);
+            for (int y=0; y<64; y++) for (int x=0; x<64; x++) {
+                if ((x>=12 && x<=14 && y>=13 && y<=21) ||
+                    (x>=50 && x<=52 && y>=19 && y<=27)) continue;
+                assert(full[y*64+x]==celery_man_sprites[CELERY_MAN_HAPPY_FIRST+tick%24][y*64+x]);
+            }
+        }
+        p.happy=0; p.mode_t=0;
+        muse_pixel_render(&p);
+        muse_pixel_scale(full,64,0,63,0,63);
+        assert(memcmp(full,celery_man_sprites[CELERY_MAN_IDLE_FIRST],4096*2)==0);
     }
     /* Return to the default repeatedly after rendering each custom character. */
     muse_pixel_set_size(64);

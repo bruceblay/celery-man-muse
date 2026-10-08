@@ -1,5 +1,5 @@
-/* Celery Man character pack for Muse. Custom artwork with native Muse poses.
- * Source sheets and prompts live in the sibling character directories.
+/* Celery Man character pack for Muse. Video dances and generated Oyster poses.
+ * Source sheets and provenance live in the sibling character directories.
  */
 #include "muse_pixel.h"
 #include <math.h>
@@ -23,7 +23,7 @@ static const struct {
     uint32_t accent;
 } characters[] = {
     {"tayne", "Tayne", tayne_sprites, NULL, 1.6f, 0xf3c971},
-    {"celery-man", "Celery Man", celery_man_sprites, celebration, 2.4f, 0xb6d9e9},
+    {"celery-man", "Celery Man", celery_man_sprites, NULL, 1.6f, 0xb6d9e9},
     {"oyster", "Oyster", oyster_sprites, celebration, 1.6f, 0xf17d79},
     {"muse", "Default pet", NULL, NULL, 0, 0},
 };
@@ -86,7 +86,7 @@ bool muse_character_select(int index)
 static float clamp01(float v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
 /* Consecutive source-video samples at their original 15 fps cadence.
  * The epsilon keeps exact preview frame boundaries stable in float32. */
-static int tayne_video_frame(float seconds, int count)
+static int video_frame(float seconds, int count)
 {
     return (int)(fmodf(seconds, count/15.0f) * 15 + 0.0001f) % count;
 }
@@ -143,45 +143,51 @@ void muse_pixel_render(const muse_pose_t *p)
     float light = 1;
     switch (p->mode) {
     case MUSE_MODE_BOOT:
-        frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : 15;
+        frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : selected == 1 ? CELERY_MAN_IDLE_FIRST : 15;
         dy = (int)(12 * (1 - clamp01(mt / 0.8f)));
         light = clamp01(mt / 0.6f);
         break;
     case MUSE_MODE_IDLE:
-        frame = selected == 0 ? TAYNE_IDLE_FIRST + tayne_video_frame(mt, TAYNE_IDLE_COUNT) :
+        frame = selected == 0 ? TAYNE_IDLE_FIRST + video_frame(mt, TAYNE_IDLE_COUNT) :
+            selected == 1 ? CELERY_MAN_IDLE_FIRST + video_frame(mt, CELERY_MAN_IDLE_COUNT) :
             (int)(fmodf(t, characters[selected].period) * 8 / characters[selected].period) % 8;
         break;
     case MUSE_MODE_LISTENING:
-        frame = selected == 0 ? TAYNE_LISTENING_FIRST + tayne_video_frame(mt, TAYNE_LISTENING_COUNT) :
+        frame = selected == 0 ? TAYNE_LISTENING_FIRST + video_frame(mt, TAYNE_LISTENING_COUNT) :
+            selected == 1 ? CELERY_MAN_SHUFFLE_FIRST + video_frame(mt, CELERY_MAN_SHUFFLE_COUNT) :
             level > 0.35f ? 13 : 12;
         break;
     case MUSE_MODE_THINKING:
-        frame = selected == 0 ? TAYNE_THINKING_FIRST + tayne_video_frame(mt, TAYNE_THINKING_COUNT) : 15;
+        frame = selected == 0 ? TAYNE_THINKING_FIRST + video_frame(mt, TAYNE_THINKING_COUNT) :
+            selected == 1 ? CELERY_MAN_IDLE_FIRST + video_frame(mt, CELERY_MAN_IDLE_COUNT) : 15;
         break;
     case MUSE_MODE_SPEAKING:
         if (selected == 0) {
             /* Speaking is the playback signal. The meter can be zero or stale,
              * so it must not prevent the filmed sequence from advancing. */
-            frame = TAYNE_FRONT_FIRST + tayne_video_frame(mt, TAYNE_FRONT_COUNT);
+            frame = TAYNE_FRONT_FIRST + video_frame(mt, TAYNE_FRONT_COUNT);
+        } else if (selected == 1) {
+            frame = CELERY_MAN_SHUFFLE_FIRST + video_frame(mt, CELERY_MAN_SHUFFLE_COUNT);
         } else {
             frame = level > 0.13f ? 14 : 15;
             dy = level > 0.7f ? -1 : 0;
         }
         break;
     case MUSE_MODE_ERROR:
-        frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : 15;
+        frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : selected == 1 ? CELERY_MAN_IDLE_FIRST : 15;
         light = 0.65f;
         break;
     case MUSE_MODE_OFF:
-        frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : 8;
+        frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : selected == 1 ? CELERY_MAN_IDLE_FIRST : 8;
         light = 1 - clamp01(mt / 1.2f);
         dy = (int)(clamp01(mt / 1.2f) * 5);
         break;
-    default: frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : 15; break;
+    default: frame = selected == 0 ? TAYNE_FRONT_FIRST + 9 : selected == 1 ? CELERY_MAN_IDLE_FIRST : 15; break;
     }
     if (happy) {
         int step = (int)(fmodf(fmaxf(0, t-pet_started), 1.6f) * 5);
-        frame = selected == 0 ? TAYNE_HAPPY_FIRST + tayne_video_frame(fmaxf(0, t-pet_started), TAYNE_HAPPY_COUNT) :
+        frame = selected == 0 ? TAYNE_HAPPY_FIRST + video_frame(fmaxf(0, t-pet_started), TAYNE_HAPPY_COUNT) :
+            selected == 1 ? CELERY_MAN_HAPPY_FIRST + video_frame(fmaxf(0, t-pet_started), CELERY_MAN_HAPPY_COUNT) :
             characters[selected].happy[step < 8 ? step : 7];
     }
     memset(pixels, 0, sizeof(pixels));
@@ -198,13 +204,13 @@ void muse_pixel_render(const muse_pose_t *p)
         int phase = (int)(fmodf(mt, 1.2f) / 0.4f);
         for (int i = 0; i < 3; i++) {
             uint16_t c = i == phase ? accent : dim(accent, 0.25f);
-            int x=selected==0 ? 26+i*5 : 46+i*4;
-            int y=selected==0 ? 62 : 12;
+            int x=selected<=1 ? 26+i*5 : 46+i*4;
+            int y=selected<=1 ? 62 : 12;
             dot(x, y, c); dot(x, y+1, c);
         }
     }
     if (p->mode == MUSE_MODE_ERROR) {
-        int x=selected==0 ? 59 : 51;
+        int x=selected<=1 ? 59 : 51;
         for (int y=12; y<17; y++) dot(x, y, accent);
         dot(x, 19, accent);
     }
