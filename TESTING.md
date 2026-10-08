@@ -20,7 +20,7 @@ A successful build does not verify touch input, audio, power use, or frame rate 
 ## Automated checks
 
 - Four avatars, seven Muse modes, and fourteen output sizes under AddressSanitizer and UBSan.
-- Complete custom-character animation cycles, including Tayne's mirrored turn poses and 4.32-second loop boundary.
+- Complete custom-character animation cycles, including Tayne's 1.6-second video loops. Every idle frame must match its packed source frame, in order, at exact 15 fps boundaries.
 - Partial display strips match full-frame output; buffer guards remain intact.
 - Default pet output matches the original SDK renderer, including after switching from each dancer.
 - Clean and repeated installation; upgrades from both earlier integration patches; refusal to overwrite custom artwork; preservation of unrelated edits.

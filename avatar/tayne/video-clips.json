@@ -1,0 +1,17 @@
+{
+  "source": "https://www.youtube.com/watch?v=a8K6QUPmv8Q",
+  "title": "Dance Paul Rudd, Dance | Tim and Eric Awesome Show, Great Job! | adult swim",
+  "source_resolution": [1920, 1080],
+  "fps": 15,
+  "frames_per_clip": 24,
+  "grid": [8, 3],
+  "frame_size": [64, 64],
+  "foreground_size": [35, 58],
+  "foreground_position": [14, 3],
+  "background_key": "0xececec:0.16:0.04",
+  "clips": [
+    {"name": "idle", "file": "video-idle.png", "start_seconds": 66.65, "crop_xywh": [908, 160, 540, 884], "description": "Low, wide-legged bounce"},
+    {"name": "happy", "file": "video-happy.png", "start_seconds": 74.4, "crop_xywh": [136, 144, 536, 888], "description": "High-knee Flarhgunnstow sequence, leftmost dancer"}
+  ],
+  "processing": "Consecutive video samples in original order at original speed. Crop window chrome, key the pale background, scale and place on black. No generated poses, mirroring, interpolation or choreography. Original window-edge clipping is retained."
+}

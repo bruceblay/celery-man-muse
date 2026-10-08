@@ -48,10 +48,11 @@ with tempfile.TemporaryDirectory() as td:
     for name, mode in modes.items():
         frames = []
         display_frames = []
-        # Tayne's complete shuffle/turn/hat phrase is 54 beats of 80 ms.
-        n = 40 if name == "happy" else [54,30,20][names.index(args.character)] if name == "idle" else 30
+        video_dance = args.character == 'tayne' and name in ('idle', 'happy')
+        interval = 1/15 if video_dance else 0.08
+        n = (24 if name == 'idle' else 48) if video_dance else 40 if name == "happy" else [20,30,20][names.index(args.character)] if name == "idle" else 30
         for i in range(n):
-            t = i * 0.08
+            t = i * interval
             level = max(0, abs(math.sin(t*6.3)) * (0.55+0.45*math.sin(t*1.7+1)))
             happy = max(0, min(1, (2.0-t)/0.4)) if name == "happy" and t >= 0.4 else 0
             pose = Pose(mode, 10+t, t, level if name in ("speaking", "listening") else 0, happy)
@@ -68,8 +69,10 @@ with tempfile.TemporaryDirectory() as td:
             atlas.paste(f, ((i%10)*64, (i//10)*64))
         encoded = io.BytesIO()
         atlas.save(encoded, format="PNG", optimize=True)
-        data[name] = {"frames": n, "src": "data:image/png;base64,"+base64.b64encode(encoded.getvalue()).decode()}
+        data[name] = {"frames": n, "frame_ms": interval*1000, "src": "data:image/png;base64,"+base64.b64encode(encoded.getvalue()).decode()}
         if name in ('idle', 'happy'):
-            display_frames[0].save(dest/(name+'.gif'),save_all=True,append_images=display_frames[1:],duration=80,loop=0)
+            # GIF durations are multiples of 10 ms; distribute rounding error.
+            durations = [(round((i+1)*interval*100)-round(i*interval*100))*10 for i in range(n)]
+            display_frames[0].save(dest/(name+'.gif'),save_all=True,append_images=display_frames[1:],duration=durations,loop=0)
     (dest / "preview-data.json").write_text(json.dumps(data, separators=(",", ":")))
     print("Exported eight states from the native C renderer.")
