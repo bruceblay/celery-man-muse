@@ -37,9 +37,9 @@ GitHub Actions runs the renderer, profile, and installer tests on each push. Ful
 
 The default-pet release was flashed with written-data verification. The board connected to Muse, and menu tests selected each dancer and restored Default pet from each one. Selection writes completed successfully. Saved-character restoration was also confirmed after an earlier restart.
 
-The attached StickS3 retains that tested firmware. The new touchscreen integration does not change its button menu.
+The attached StickS3 now runs the approved Tayne video update. Flashing preserved its existing device configuration, pairing, and local voice-session fixes. The new touchscreen integration does not change its button menu.
 
-Tayne's video dances and speaking close-up have been checked in renderer previews and firmware builds, but have not been flashed or checked on a physical display.
+Tayne's video update was flashed with written-data hash verification. The boot log loaded Tayne and reached Muse startup without a panic or reboot loop during the check. The board reported its pairing intact and its Muse link online. It continued responding after console-driven listening, thinking, speaking, happy, and idle states, and was left idle. Physical animation appearance and timing, and speech driven by real audio, still need visual and listening checks.
 
 ## Known issues
 
