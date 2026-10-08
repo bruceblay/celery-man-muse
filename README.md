@@ -7,11 +7,18 @@ Tayne, Celery Man, and Oyster as animated companions for [Muse](https://github.c
 Tayne's dances use frames from the sketch, including the low bounce and Flarhgunnstow sequence.
 He swings his arms while listening, kicks with his arms raised while thinking, and switches to the sketch's close-up while speaking.
 
-Celery Man now dances from the footage too: hip sway at rest, raised-fist shuffle during conversations, and 4d3d3 when happy.
+Celery Man uses three dances from the sketch: hip sway while idle, raised-fist shuffle while listening and speaking, and 4d3d3 when happy. Thinking adds dots below his feet. Oyster currently uses illustrated poses; his footage-based update is in progress.
 
 | Tayne | Celery Man | Oyster |
 | :---: | :---: | :---: |
 | ![Tayne dancing](avatar/tayne/idle.gif) | ![Celery Man dancing](avatar/celery-man/idle.gif) | ![Oyster dancing](avatar/oyster/idle.gif) |
+
+## Celery Man’s moves
+
+| Hip sway | Raised-fist shuffle | 4d3d3 |
+| :---: | :---: | :---: |
+| ![Hip sway](avatar/celery-man/idle.gif) | ![Raised-fist shuffle](avatar/celery-man/speaking.gif) | ![4d3d3](avatar/celery-man/happy.gif) |
+| Idle; thinking adds dots | Listening and speaking | Happy |
 
 ## Get started
 
