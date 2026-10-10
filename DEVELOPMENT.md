@@ -60,6 +60,14 @@ python3 avatar/tayne/export_preview.py --character oyster --size 128 --output /t
 
 Tayne exports GIFs for speaking, listening, and thinking as well as the two dances. The speaking preview shows the same continuous sequence used on the device.
 
+### README device previews
+
+```sh
+python3 tools/export_device_previews.py --sdk ../muse-gadget-sdk
+```
+
+This rebuilds the six animated display mockups and still previews in `docs/devices/`. Avatar pixels come from the current C renderer at each board’s native avatar size. The display framing and status text are illustrative, not hardware screenshots. The script reads board dimensions from `tools/boards.py` and cycles through all three characters, including Oyster’s printout.
+
 ## Adding boards
 
 This pack supports boards that already have Muse's full avatar UI. To expose another such board, add its profile to `tools/boards.py`, verify its overlay and dimensions against the SDK, and add its native render size to the tests. Build it before recording build support; test the physical screen and inputs before recording hardware support.

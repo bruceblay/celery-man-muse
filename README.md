@@ -36,11 +36,25 @@ Oyster also comes straight from the footage. He headbangs while idle, swings his
 | ![Headbang](avatar/oyster/idle.gif) | ![Arms back](avatar/oyster/listening.gif) | ![Greeting](avatar/oyster/speaking.gif) | ![Printout](avatar/oyster/thinking.gif) |
 | Idle | Listening | Speaking and happy | Thinking |
 
+## Supported devices
+
+Animated display mockups cycle through Tayne, Celery Man, and Oyster, including the printout. Screen proportions and avatar sizes follow Muse’s layouts; cases are simplified and not shown to physical scale.
+
+| M5Stack StickS3 | M5Stack StickC Plus2 | AIPI Lite |
+| :---: | :---: | :---: |
+| ![Tayne, Celery Man, and Oyster on the StickS3 display](docs/devices/sticks3.gif) | ![Tayne, Celery Man, and Oyster on the StickC Plus2 display](docs/devices/plus2.gif) | ![Tayne, Celery Man, and Oyster on the AIPI Lite display](docs/devices/aipi.gif) |
+| 135×240 · Buttons | 135×240 · Buttons | 128×128 · Buttons |
+
+| SenseCAP Watcher | Waveshare S3 1.75C | Waveshare C6 1.8 |
+| :---: | :---: | :---: |
+| ![Tayne, Celery Man, and Oyster on the round SenseCAP Watcher display](docs/devices/watcher.gif) | ![Tayne, Celery Man, and Oyster on the round Waveshare S3 1.75C display](docs/devices/s3.gif) | ![Tayne, Celery Man, and Oyster on the Waveshare C6 1.8 display](docs/devices/c6.gif) |
+| 412×412 · Round touchscreen | 466×466 · Round touchscreen | 368×448 · Touchscreen |
+
+All six have build profiles and character selection. Only StickS3 has been tested on hardware. See [devices and screen sizes](DEVICES.md) and [build results](TESTING.md).
+
 ## Get started
 
 You'll need a compatible device, a USB data cable, and a Muse account. Start with the [installation guide](INSTALL.md) to build and flash the firmware.
-
-The StickS3 has been tested on hardware. Build profiles and controls are also included for StickC Plus2, AIPI Lite, SenseCAP Watcher, and two Waveshare touchscreen boards. See [devices and screen sizes](DEVICES.md) for testing status.
 
 ## Choose a character
 

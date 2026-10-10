@@ -1,0 +1,62 @@
+{
+  "sticks3": {
+    "panel": [
+      135,
+      240
+    ],
+    "avatar": 128,
+    "frames": 101,
+    "duration_ms": 6730,
+    "bytes": 290617
+  },
+  "plus2": {
+    "panel": [
+      135,
+      240
+    ],
+    "avatar": 128,
+    "frames": 101,
+    "duration_ms": 6730,
+    "bytes": 291257
+  },
+  "aipi": {
+    "panel": [
+      128,
+      128
+    ],
+    "avatar": 96,
+    "frames": 101,
+    "duration_ms": 6730,
+    "bytes": 408806
+  },
+  "watcher": {
+    "panel": [
+      412,
+      412
+    ],
+    "avatar": 256,
+    "frames": 101,
+    "duration_ms": 6730,
+    "bytes": 336354
+  },
+  "s3": {
+    "panel": [
+      466,
+      466
+    ],
+    "avatar": 320,
+    "frames": 101,
+    "duration_ms": 6730,
+    "bytes": 367976
+  },
+  "c6": {
+    "panel": [
+      368,
+      448
+    ],
+    "avatar": 320,
+    "frames": 101,
+    "duration_ms": 6730,
+    "bytes": 382714
+  }
+}
